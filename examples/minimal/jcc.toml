@@ -1,0 +1,12 @@
+[package]
+name = "com/jcc/minimal"
+aid = "A000000062030101"
+version = "1.0"
+
+[applet]
+aid = "A00000006203010101"
+class = "MinimalApplet"
+
+[analysis]
+max_stack_slots = 64
+javacard_version = "3.0.4"

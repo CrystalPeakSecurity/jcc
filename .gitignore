@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+._*
+Thumbs.db
+*~
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Separate dependencies
+etc/jcdk/
+etc/jcdk-sim/
+etc/gp/
+
+# Java / build artifacts
+*.jar
+*.jca
+*.cap
+*.class
+*.report.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+.pytest_cache/
+.ruff_cache/
+uv.lock
+
+# Debug recordings
+*.jsonl

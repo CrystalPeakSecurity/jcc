@@ -1,0 +1,78 @@
+# Stack Probe - Discover card stack limits
+
+_root := justfile_directory() / "../.."
+_out := justfile_directory() / "build"
+_gp := _root / "etc/gp/gp.jar"
+
+# Applet AIDs
+_pkg_aid := "DA43B630ED9302AABB01"
+_applet_aid := "DA43B630ED9302AABB0101"
+
+export JAVA_HOME := if os() == "macos" {
+    "/opt/homebrew/Cellar/openjdk@17/17.0.17/libexec/openjdk.jdk/Contents/Home"
+} else if arch() == "aarch64" {
+    "/usr/lib/jvm/java-17-openjdk-arm64"
+} else {
+    "/usr/lib/jvm/java-17-openjdk-amd64"
+}
+export JC_HOME := _root / "etc/jcdk"
+
+# Run the full stack probe (compile, install, test, cleanup)
+probe: compile uninstall install _probe uninstall
+    @echo "Done!"
+
+# Quick probe: use 2^N-1 and 1.5*2^N-1 values to find rough limit
+quick-probe: _gen-quick compile uninstall install _probe-quick uninstall
+    @echo "Done!"
+
+# Linear probe: test every slot in a range (use after quick-probe to narrow down)
+linear-probe min max: (_gen-range min max) compile uninstall install (_probe-linear min max) uninstall
+    @echo "Done!"
+
+# Just compile (default: 1-100 slots)
+compile:
+    #!/usr/bin/env bash
+    set -e
+    mkdir -p {{_out}}
+    cd {{_root}}
+    uv run jcc tools/stack-probe/main.c -o {{_out}}/applet.jca
+
+# Generate main.c with default 1-100 slots
+generate:
+    cd {{_root}} && uv run python tools/stack-probe/generate.py -o tools/stack-probe/main.c
+
+# Generate main.c with quick probe slots (2^N-1 and 1.5*2^N-1)
+_gen-quick:
+    cd {{_root}} && uv run python tools/stack-probe/generate.py --quick --max 255 -o tools/stack-probe/main.c
+
+# Generate main.c with a range of slots
+_gen-range min max:
+    cd {{_root}} && uv run python tools/stack-probe/generate.py --range {{min}} {{max}} -o tools/stack-probe/main.c
+
+# Install to real card (uninstalls first if present)
+install: uninstall
+    java -jar {{_gp}} --install {{_out}}/applet.cap
+
+# Uninstall from real card
+uninstall:
+    -java -jar {{_gp}} --force --delete {{_pkg_aid}}
+
+# Run the probe script (binary search)
+_probe:
+    cd {{_root}} && uv run python tools/stack-probe/probe.py --installed
+
+# Run quick probe (for 2^N-1 slots)
+_probe-quick:
+    cd {{_root}} && uv run python tools/stack-probe/probe.py --installed
+
+# Run linear probe over a range
+_probe-linear min max:
+    cd {{_root}} && uv run python tools/stack-probe/probe.py --installed --linear
+
+# Probe specific slots (applet must already have those slots compiled)
+probe-slots +slots:
+    cd {{_root}} && uv run python tools/stack-probe/probe.py --installed --slots {{slots}}
+
+# Show what quick probe slots would be generated
+show-quick-slots:
+    @cd {{_root}} && uv run python -c "import sys; sys.path.insert(0, 'tools/stack-probe'); from generate import compute_quick_slots; print(' '.join(str(s) for s in compute_quick_slots(512)))"

@@ -1,0 +1,175 @@
+# DOOM JavaCard Port - Build and Test
+
+# Paths
+_root := justfile_directory() / "../.."
+_jc_home := _root / "etc/jcdk"
+_out := justfile_directory() / "build"
+_driver := "examples/doom/tools/driver.py"
+_session := "examples/doom/tools/session.py"
+_gp := _root / "etc/gp/gp.jar"
+
+# Applet AID (must match jcc.toml)
+_applet_aid := "A0000000620300D00101"
+
+# Environment
+export JAVA_HOME := if os() == "macos" {
+    "/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home"
+} else if arch() == "aarch64" {
+    "/usr/lib/jvm/java-17-openjdk-arm64"
+} else {
+    "/usr/lib/jvm/java-17-openjdk-amd64"
+}
+export JC_HOME := _jc_home
+
+# Default: build, restart sim, load (starts session), verify
+run: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} verify
+
+# Just compile (no load). Use `just compile -v` for verbose output.
+compile *flags: (_compile flags)
+
+# Read and consume debug log
+read-log:
+    cd {{_root}} && uv run python {{_driver}} read-log
+
+# Render a frame and display as ASCII art
+# Use `just render --hires` for half-block rendering
+render *flags: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} render {{flags}}
+
+# Validate trig tables against golden data
+test-tables: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} test-tables
+
+# Validate math functions (FixedMul, FixedDiv, PointToAngle)
+test-math: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} test-math
+
+# Test input parsing (forward, strafe, turn)
+test-inputs: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} test-inputs
+
+# Test movement calculation (momx, momy direction)
+test-movement: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} test-movement
+
+# Validate BSP traversal statistics against JDOOM golden values
+test-bsp: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} test-bsp
+
+# Run all tests (compiles once, runs all test suites)
+test: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} test-tables
+    cd {{_root}} && uv run python {{_driver}} test-math
+    cd {{_root}} && uv run python {{_driver}} test-inputs
+    cd {{_root}} && uv run python {{_driver}} test-movement
+    cd {{_root}} && uv run python {{_driver}} test-bsp
+
+# Interactive play mode - walk around E1M1 with WASD controls
+play: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} play
+
+# Replay a recorded session (interactive)
+replay file *flags: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} play --replay {{file}} {{flags}}
+
+# Replay a recorded session (headless, prints frame-by-frame)
+replay-headless file: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python {{_driver}} play --replay {{file}} --headless
+
+# --- Real Card ---
+
+# Play on real card
+card-play:
+    cd {{_root}} && uv run python {{_driver}} play --real-card
+
+# Render single frame on real card
+card-render:
+    cd {{_root}} && uv run python {{_driver}} render --real-card
+
+# Install on real card
+card-install: (_compile "")
+    java -jar {{_gp}} --install {{_out}}/applet.cap
+
+# Reinstall on real card (uninstall + install)
+card-reinstall: (_compile "")
+    -java -jar {{_gp}} --uninstall {{_out}}/applet.cap
+    java -jar {{_gp}} --install {{_out}}/applet.cap
+
+# Uninstall from real card
+card-uninstall:
+    java -jar {{_gp}} --uninstall {{_out}}/applet.cap
+
+# Lint source for common bugs (runs integrated linter)
+lint:
+    cd {{_root}} && uv run jcc examples/doom/main.c --lint-only
+
+# View simulator logs
+sim-log:
+    @cat /tmp/jcsl-logs/jcsl.log 2>/dev/null || echo "No log file found. Run the simulator first."
+
+# Debug sprite projection - compare our DOOM vs JDOOM
+debug-sprites: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python examples/doom/tools/debug_sprites.py
+
+# Print a mock example of the play mode GUI (no simulator needed)
+debug-gui:
+    cd {{_root}} && uv run python {{_driver}} debug-gui
+
+# Check session status
+session-status:
+    @cd {{_root}} && uv run python {{_session}} status
+
+# Stop everything (session + simulator)
+stop: _session_stop _sim_stop
+
+# Benchmark frame performance (10 second test)
+# Optional: `just benchmark <recording_file>` to benchmark replay performance
+benchmark *args: (_compile "") _sim_restart _load
+    cd {{_root}} && uv run python examples/doom/tools/benchmark.py {{args}}
+
+# --- Internal recipes ---
+
+_compile flags="":
+    #!/usr/bin/env bash
+    set -e
+    mkdir -p {{_out}}
+    cd {{_root}}
+    uv run jcc examples/doom/main.c -o {{_out}}/applet.jca {{flags}}
+
+_load:
+    #!/usr/bin/env bash
+    set -e
+    cd {{_root}}
+    # Stop any existing session before loading
+    uv run python {{_session}} stop 2>/dev/null || true
+    # Load the applet
+    uv run python {{_driver}} load {{_out}}/applet.cap
+    # Start session daemon (redirect to log file to prevent pipe hangs)
+    uv run python {{_session}} start {{_applet_aid}} >> /tmp/jcc-doom-session.log 2>&1 &
+    sleep 1
+    uv run python {{_session}} status
+
+_sim_start:
+    #!/usr/bin/env bash
+    set -e
+    cd {{_root}}
+    docker build -t jcdk-sim etc/jcdk-sim 2>/dev/null || true
+    docker rm -f jcc-simulator 2>/dev/null || true
+    mkdir -p /tmp/jcsl-logs
+    docker run -d --name jcc-simulator \
+        -v "$(pwd)/etc/jcdk-sim:/jcdk-sim:ro" \
+        -v "/tmp/jcsl-logs:/logs" \
+        -p 9025:9025 \
+        jcdk-sim \
+        sh -c 'LD_LIBRARY_PATH=/jcdk-sim/runtime/bin /jcdk-sim/runtime/bin/jcsl -p=9025 -log_level=finest 2>&1 | tee /logs/jcsl.log'
+    sleep 2
+    echo "Simulator logs: /tmp/jcsl-logs/jcsl.log"
+
+_sim_stop: _session_stop
+    docker rm -f jcc-simulator 2>/dev/null || true
+
+_sim_restart: _sim_stop _sim_start
+
+_session_stop:
+    cd {{_root}} && uv run python {{_session}} stop 2>/dev/null || true

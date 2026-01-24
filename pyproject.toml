@@ -1,0 +1,54 @@
+[project]
+name = "jcc"
+version = "0.1.0"
+description = "C-to-JavaCard bytecode compiler"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "blessed>=1.27.0",
+    "cffi>=2.0.0",
+    "cyclopts>=4.4.3",
+    "mido>=1.3.3",
+    "numpy>=2.4.1",
+    "opencv-python>=4.13.0.90",
+    "pillow>=10.0.0",
+    "pycparser>=2.23",
+    "pyscard>=2.3.1",
+    "rich>=13.0.0",
+    "sounddevice>=0.5.5",
+    "textual>=7.3.0",
+]
+
+[project.scripts]
+jcc = "jcc.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jcc"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "prek>=0.2.30",
+    "pyright>=1.1.407",
+    "pytest>=9.0.2",
+    "pytest-env>=1.1.5",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.14.10",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = ["-v", "--tb=short"]
+timeout = 10
+markers = [
+    "simulator: marks tests that require the JavaCard simulator (Docker + JCDK)",
+]
+

@@ -1,0 +1,143 @@
+# Log ID to human-readable name mapping
+
+[traces]
+# Frame markers (0x10-0x1F)
+0x10 = "frame_start"
+0x11 = "frame_complete"
+0x12 = "after_xy_movement"
+0x13 = "after_run_thinkers"
+0x14 = "after_weapon_tick"
+0x15 = "after_setup_frame"
+0x16 = "after_render_bsp"
+0x17 = "after_project_sprites"
+0x18 = "after_draw_sprites"
+0x19 = "enemies_spawned"
+
+# AI: A_Look (0x20-0x2F)
+0x20 = "look_start"
+0x21 = "look_sight_check"
+0x22 = "look_sight_fail"
+0x23 = "look_sight_pass"
+
+# Sprite projection logging (0x30-0x3F)
+0x31 = "spr_x"
+0x32 = "spr_y"
+0x33 = "spr_tz"
+0x34 = "spr_type"
+0x35 = "vis_x1"
+0x36 = "vis_x2"
+0x37 = "vis_y1"
+0x38 = "vis_y2"
+0x39 = "vis_scale"
+0x3A = "spr_radius"
+0x3B = "spr_mul_result"
+0x3C = "draw_x1"
+0x3D = "draw_scale"
+0x3E = "col_depth"
+
+# AI basic (0x40-0x42)
+0x40 = "thinker_mobj"
+0x41 = "state_from"
+0x42 = "action"
+
+# AI: A_Chase (0x43-0x4F)
+0x43 = "chase_start"
+0x44 = "chase_sight_check"
+0x45 = "chase_newdir_lostsight"
+0x46 = "chase_after_sight"
+0x47 = "chase_newdir_justattacked"
+0x48 = "chase_melee_check"
+0x49 = "chase_melee_attack"
+0x4A = "chase_missile_check"
+0x4B = "chase_missile_attack"
+0x4C = "chase_movement"
+0x4D = "chase_newdir_movement"
+0x4E = "chase_done"
+
+# AI: P_NewChaseDir (0x50-0x5F)
+0x50 = "newdir_start"
+0x51 = "newdir_no_target"
+0x52 = "newdir_target"
+
+# AI: P_Move (0x60-0x6F)
+0x60 = "move_start"
+0x61 = "move_nodir"
+0x62 = "move_dir"
+0x63 = "move_blocked"
+0x64 = "move_mobj_idx"
+0x65 = "move_type"
+0x66 = "move_before_speed"
+0x67 = "move_after_speed"
+0x68 = "move_after_tryx"
+0x69 = "move_before_trymove"
+
+# P_TryMove_Mobj (0x70-0x7F)
+0x70 = "trymove_start"
+0x71 = "trymove_before_checkpos"
+0x72 = "trymove_checkpos_fail"
+0x73 = "trymove_checkpos_ok"
+0x74 = "checkpos_start"
+0x75 = "checkpos_after_bbox"
+0x76 = "checkpos_ssect"
+0x77 = "checkpos_sector"
+0x78 = "checkpos_after_floor"
+0x79 = "checkpos_before_blocks"
+0x7A = "checkpos_after_blocks"
+0x7B = "subsector_start"
+0x7C = "subsector_nodenum"
+0x7D = "subsector_found"
+0x7E = "subsector_loop_exceeded"
+0x7F = "subsector_bad_nodenum"
+
+# Subsector detail (0xB0-0xBF)
+0xB0 = "node_before_data"
+0xB1 = "after_originX"
+0xB2 = "after_originY"
+0xB3 = "after_lineDx"
+0xB4 = "after_lineDy"
+0xB5 = "before_pointOnSide"
+0xB6 = "after_pointOnSide"
+0xB7 = "entered_pointOnSide"
+
+# A_SPosAttack (0x80-0x8F)
+0x80 = "sposattack_start"
+0x81 = "sposattack_before_face"
+0x82 = "sposattack_after_face"
+0x83 = "sposattack_pellet"
+0x84 = "sposattack_before_attack"
+0x85 = "sposattack_after_attack"
+0x86 = "sposattack_done"
+
+# P_LineAttackMobj (0xA0-0xAF)
+0xA0 = "lineattack_start"
+0xA1 = "lineattack_before_dist"
+0xA2 = "lineattack_after_dist"
+0xA3 = "lineattack_out_of_range"
+0xA4 = "lineattack_before_trig"
+0xA5 = "lineattack_after_trig"
+0xA6 = "lineattack_before_aimdist"
+0xA7 = "lineattack_after_aimdist"
+0xA8 = "lineattack_before_div"
+0xA9 = "lineattack_after_div"
+0xAA = "lineattack_missed"
+0xAB = "lineattack_behind"
+0xAC = "lineattack_before_damage"
+0xAD = "lineattack_done"
+
+# A_FaceTarget (0x90-0x9F)
+0x90 = "facetarget_start"
+0x91 = "facetarget_no_target"
+0x92 = "facetarget_target"
+0x93 = "facetarget_before_angle"
+0x94 = "facetarget_after_angle"
+0x95 = "facetarget_done"
+
+[errors]
+0xE0 = "ERR_SOLIDSEGS_OVERFLOW"
+0xE1 = "ERR_BSP_STACK_OVERFLOW"
+0xE2 = "ERR_SLOPEDIV_NEGATIVE"
+0xE3 = "ERR_FIXEDDIV2_INTMIN"
+0xE4 = "ERR_RW_DISTANCE_ZERO"
+0xE5 = "ERR_SCALE_ZERO"
+0xE6 = "ERR_BLOCKMAP_OFFSET"
+0xE7 = "ERR_BAD_TARGET_IDX"

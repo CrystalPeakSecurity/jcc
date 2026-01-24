@@ -1,0 +1,18 @@
+[package]
+name = "sh/trey/synth"
+aid = "A0000000620300D00201"
+version = "1.0"
+
+[applet]
+aid = "A0000000620300D0020101"
+class = "Synth"
+
+[analysis]
+max_stack_slots = 64
+extended_apdu = true
+javacard_version = "2.2.2"
+
+[driver]
+game_name = "Synth"
+input_mode = "keyboard"
+continuous_frames = true

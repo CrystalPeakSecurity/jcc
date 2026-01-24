@@ -1,0 +1,22 @@
+[package]
+name = "sh/trey/musicvideo"
+aid = "A0000000620300DEAD01"
+version = "1.0"
+
+[applet]
+aid = "A0000000620300DEAD0101"
+class = "Applet"
+
+[analysis]
+max_stack_slots = 64
+extended_apdu = true
+javacard_version = "2.2.2"
+
+[driver]
+game_name = "Music Video"
+screen_width = 32
+screen_height = 20
+pixel_format = "2bpp"
+target_fps = 4
+input_mode = "none"
+continuous_frames = true

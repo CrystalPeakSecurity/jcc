@@ -1,0 +1,28 @@
+[package]
+name = "sh/trey/flappy"
+aid = "A0000000620300F001"
+
+[applet]
+aid = "A0000000620300F00101"
+class = "Applet"
+
+[analysis]
+max_stack_slots = 64
+extended_apdu = false
+javacard_version = "2.2.2"
+
+[driver]
+game_name = "Flappy"
+screen_width = 32
+screen_height = 20
+pixel_format = "1bpp"
+target_fps = 30
+input_mode = "direction"
+continuous_frames = true
+single_input = true
+controls_space = "Flap"
+# Custom 1bpp palette: dark gray (background) and white (foreground)
+palette = [
+    [8, 8, 8],       # 0: Very dark gray
+    [255, 255, 255], # 1: White
+]

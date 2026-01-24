@@ -1,0 +1,42 @@
+[package]
+name = "sh/trey/pkmn"
+aid = "A0000000620300F003"
+
+[applet]
+aid = "A0000000620300F00301"
+class = "Applet"
+
+[analysis]
+max_stack_slots = 64
+extended_apdu = true
+javacard_version = "2.2.2"
+
+[driver]
+game_name = "PKMN"
+screen_width = 48
+screen_height = 32
+pixel_format = "4bpp"
+target_fps = 15
+input_mode = "direction_button"
+continuous_frames = true
+single_input = true
+controls_wasd = true
+controls_space = "Select"
+palette = [
+    [0, 0, 0],        # 0: Black
+    [255, 255, 255],  # 1: White
+    [210, 180, 140],  # 2: Path (tan)
+    [144, 238, 144],  # 3: Short grass light
+    [60, 179, 60],    # 4: Short grass dark
+    [34, 177, 76],    # 5: Tall grass light
+    [0, 128, 0],      # 6: Tall grass dark
+    [248, 216, 168],  # 7: Cream (Meowth)
+    [248, 208, 48],   # 8: Yellow (Pikachu)
+    [168, 112, 64],   # 9: Brown
+    [232, 96, 72],    # 10: Red
+    [0, 200, 0],      # 11: HP green
+    [200, 50, 50],    # 12: HP red
+    [248, 248, 248],  # 13: UI background (off-white)
+    [88, 88, 88],     # 14: UI border
+    [80, 60, 40],     # 15: Blocked/trees
+]

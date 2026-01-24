@@ -1,0 +1,12 @@
+[package]
+name = "com/jcc/stackprobe"
+aid = "DA43B630ED9302AABB01"
+version = "1.0"
+
+[applet]
+aid = "DA43B630ED9302AABB0101"
+class = "StackProbe"
+
+[analysis]
+max_stack_slots = 1024  # Allow high value for probing (must exceed test_N + process overhead)
+javacard_version = "2.2.2"  # Target older JavaCard 2.2.2 cards
