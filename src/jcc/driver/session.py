@@ -44,8 +44,8 @@ class SimSession:
             root_dir: Project root directory (auto-detected if None)
         """
         if root_dir is None:
-            # Auto-detect: look for src/jcc from current location
-            root_dir = Path(__file__).parent.parent.parent.parent
+            # Auto-detect: look for project root from current location
+            root_dir = Path(__file__).parent.parent.parent
 
         client_cp = (
             f"{root_dir}/etc/jcdk-sim/client/COMService/socketprovider.jar:"
@@ -64,7 +64,15 @@ class SimSession:
         )
 
         # Wait for ready signal
-        resp = json.loads(self.proc.stdout.readline())
+        line = self.proc.stdout.readline()
+        if not line:
+            stderr = self.proc.stderr.read() if self.proc.stderr else ""
+            rc = self.proc.wait()
+            msg = f"Simulator process died during startup (exit code {rc})"
+            if stderr:
+                msg += f"\n{stderr.strip()}"
+            raise RuntimeError(msg)
+        resp = json.loads(line)
         if not resp.get("ready"):
             raise RuntimeError(f"Session failed to start: {resp}")
 
@@ -72,7 +80,18 @@ class SimSession:
         """Send APDU and return (data, status_word)."""
         self.proc.stdin.write(apdu_hex + "\n")
         self.proc.stdin.flush()
-        resp = json.loads(self.proc.stdout.readline())
+        line = self.proc.stdout.readline()
+        if not line:
+            # Process died — collect stderr for diagnostics
+            stderr = ""
+            if self.proc.stderr:
+                stderr = self.proc.stderr.read()
+            rc = self.proc.wait()
+            msg = f"Simulator process died (exit code {rc})"
+            if stderr:
+                msg += f"\n{stderr.strip()}"
+            raise RuntimeError(msg)
+        resp = json.loads(line)
         if "error" in resp:
             raise RuntimeError(resp["error"])
         return bytes.fromhex(resp.get("data", "")), resp.get("sw", 0)
@@ -280,7 +299,7 @@ def load_applet(
         root_dir: Project root directory
     """
     if root_dir is None:
-        root_dir = Path(__file__).parent.parent.parent.parent
+        root_dir = Path(__file__).parent.parent.parent
 
     client_cp = (
         f"{root_dir}/etc/jcdk-sim/client/COMService/socketprovider.jar:"
@@ -302,3 +321,56 @@ def load_applet(
     result = subprocess.run(cmd, cwd=root_dir)
     if result.returncode != 0:
         raise RuntimeError(f"Failed to load applet (exit code {result.returncode})")
+
+
+def load_applet_card(
+    cap_path: str,
+    root_dir: Path = None,
+) -> None:
+    """
+    Load an applet onto a real card via GlobalPlatformPro.
+
+    Args:
+        cap_path: Path to the CAP file
+        root_dir: Project root directory
+    """
+    if root_dir is None:
+        root_dir = Path(__file__).parent.parent.parent
+
+    gp_jar = root_dir / "etc/gp/gp.jar"
+    if not gp_jar.exists():
+        raise FileNotFoundError(f"gp.jar not found at {gp_jar}")
+
+    cmd = ["java", "-jar", str(gp_jar), "--force", "--install", str(cap_path)]
+    result = subprocess.run(cmd)
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to install applet on card (exit code {result.returncode})")
+
+
+def unload_applet(
+    pkg_aid: str,
+    applet_aid: str,
+    root_dir: Path = None,
+) -> None:
+    """Uninstall and unload an applet from the simulator."""
+    if root_dir is None:
+        root_dir = Path(__file__).parent.parent.parent
+
+    client_cp = (
+        f"{root_dir}/etc/jcdk-sim/client/COMService/socketprovider.jar:"
+        f"{root_dir}/etc/jcdk-sim/client/AMService/amservice.jar"
+    )
+    client_dir = root_dir / "etc/jcdk-sim-client"
+
+    cmd = [
+        "java",
+        "-cp",
+        f"{client_cp}:{client_dir}",
+        "JCCClient",
+        "unload",
+        pkg_aid,
+        applet_aid,
+    ]
+    result = subprocess.run(cmd, cwd=root_dir)
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to unload applet (exit code {result.returncode})")

@@ -1,0 +1,517 @@
+{
+  "iterations": 1000,
+  "runs": 5,
+  "suites": 7,
+  "benchmarks": [
+    {
+      "name": "nop",
+      "desc": "nop",
+      "body_insns": 1,
+      "avg_ms": 94.53910660000076
+    },
+    {
+      "name": "sconst",
+      "desc": "sconst_5; pop",
+      "body_insns": 2,
+      "avg_ms": 34.71383327999888
+    },
+    {
+      "name": "bspush",
+      "desc": "bspush 5; pop",
+      "body_insns": 2,
+      "avg_ms": 35.55371164000064
+    },
+    {
+      "name": "sspush",
+      "desc": "sspush 5; pop",
+      "body_insns": 2,
+      "avg_ms": 35.790303199995606
+    },
+    {
+      "name": "sload",
+      "desc": "sload_3; pop",
+      "body_insns": 2,
+      "avg_ms": 34.90954828000099
+    },
+    {
+      "name": "sstore_sload",
+      "desc": "sconst_5; sstore_3",
+      "body_insns": 2,
+      "avg_ms": 36.03292492000264
+    },
+    {
+      "name": "iload_i2s",
+      "desc": "iload 3; pop2",
+      "body_insns": 2,
+      "avg_ms": 35.43843160000165
+    },
+    {
+      "name": "istore_iload",
+      "desc": "iconst_5; istore",
+      "body_insns": 2,
+      "avg_ms": 37.26154664000205
+    },
+    {
+      "name": "sinc_sload",
+      "desc": "sinc 3 1",
+      "body_insns": 1,
+      "avg_ms": 33.18149507999635
+    },
+    {
+      "name": "sadd",
+      "desc": "sconst_5; sconst_3; sadd; pop",
+      "body_insns": 4,
+      "avg_ms": 41.48158831999581
+    },
+    {
+      "name": "ssub",
+      "desc": "sconst_5; sconst_3; ssub; pop",
+      "body_insns": 4,
+      "avg_ms": 41.439643200002934
+    },
+    {
+      "name": "smul",
+      "desc": "sconst_5; sconst_3; smul; pop",
+      "body_insns": 4,
+      "avg_ms": 42.06407992000095
+    },
+    {
+      "name": "sdiv",
+      "desc": "sconst_5; sconst_3; sdiv; pop",
+      "body_insns": 4,
+      "avg_ms": 43.666109919999485
+    },
+    {
+      "name": "srem",
+      "desc": "sconst_5; sconst_3; srem; pop",
+      "body_insns": 4,
+      "avg_ms": 44.550040120000176
+    },
+    {
+      "name": "sneg",
+      "desc": "sconst_5; sneg; pop",
+      "body_insns": 3,
+      "avg_ms": 38.11758663999626
+    },
+    {
+      "name": "sand",
+      "desc": "sconst_5; sconst_3; sand; pop",
+      "body_insns": 4,
+      "avg_ms": 41.85496344000171
+    },
+    {
+      "name": "sor",
+      "desc": "sconst_5; sconst_3; sor; pop",
+      "body_insns": 4,
+      "avg_ms": 41.673448240001676
+    },
+    {
+      "name": "sxor",
+      "desc": "sconst_5; sconst_3; sxor; pop",
+      "body_insns": 4,
+      "avg_ms": 41.60475667999947
+    },
+    {
+      "name": "sshl",
+      "desc": "sconst_5; sconst_3; sshl; pop",
+      "body_insns": 4,
+      "avg_ms": 43.16445327999986
+    },
+    {
+      "name": "sshr",
+      "desc": "sconst_5; sconst_3; sshr; pop",
+      "body_insns": 4,
+      "avg_ms": 43.03391652000073
+    },
+    {
+      "name": "sushr",
+      "desc": "sconst_5; sconst_3; sushr; pop",
+      "body_insns": 4,
+      "avg_ms": 43.03445339999598
+    },
+    {
+      "name": "s2b",
+      "desc": "sconst_5; s2b; pop",
+      "body_insns": 3,
+      "avg_ms": 38.11273168000014
+    },
+    {
+      "name": "s2i_i2s",
+      "desc": "iconst_5; i2s; pop",
+      "body_insns": 3,
+      "avg_ms": 37.504196719998504
+    },
+    {
+      "name": "dup",
+      "desc": "sconst_5; dup; pop; pop",
+      "body_insns": 4,
+      "avg_ms": 40.633239959999514
+    },
+    {
+      "name": "pop",
+      "desc": "sconst_5; sconst_3; pop; pop",
+      "body_insns": 4,
+      "avg_ms": 40.70159844000045
+    },
+    {
+      "name": "if_scmplt",
+      "desc": "sconst_3; sconst_5; if_scmplt L; L:",
+      "body_insns": 3,
+      "avg_ms": 40.42872163999732
+    },
+    {
+      "name": "ifeq",
+      "desc": "sconst_5; ifeq L; L:",
+      "body_insns": 2,
+      "avg_ms": 36.1804800800013
+    },
+    {
+      "name": "baload",
+      "desc": "getstatic_a; sconst_0; baload; pop",
+      "body_insns": 4,
+      "avg_ms": 58.0206998400007
+    },
+    {
+      "name": "saload",
+      "desc": "getstatic_a; sconst_1; saload; pop",
+      "body_insns": 4,
+      "avg_ms": 59.74370003999695
+    },
+    {
+      "name": "ba_roundtrip",
+      "desc": "bastore + baload round-trip; pop",
+      "body_insns": 8,
+      "avg_ms": 87.49478172000181
+    },
+    {
+      "name": "sa_roundtrip",
+      "desc": "sastore + saload round-trip; pop",
+      "body_insns": 8,
+      "avg_ms": 93.28479832000426
+    },
+    {
+      "name": "getstatic_a",
+      "desc": "getstatic_a; pop",
+      "body_insns": 2,
+      "avg_ms": 39.73060992000114
+    },
+    {
+      "name": "invokestatic",
+      "desc": "invokestatic bench_empty; pop",
+      "body_insns": 2,
+      "avg_ms": 58.342441719999556
+    },
+    {
+      "name": "invoke_void",
+      "desc": "invokestatic bench_empty_void",
+      "body_insns": 1,
+      "avg_ms": 50.66160995999837
+    },
+    {
+      "name": "iadd",
+      "desc": "iconst_5; iconst_3; iadd; pop2",
+      "body_insns": 4,
+      "avg_ms": 42.930786639999496
+    },
+    {
+      "name": "isub",
+      "desc": "iconst_5; iconst_3; isub; pop2",
+      "body_insns": 4,
+      "avg_ms": 42.78442324000025
+    },
+    {
+      "name": "imul",
+      "desc": "iconst_5; iconst_3; imul; pop2",
+      "body_insns": 4,
+      "avg_ms": 44.543739960002995
+    },
+    {
+      "name": "idiv",
+      "desc": "iconst_5; iconst_3; idiv; pop2",
+      "body_insns": 4,
+      "avg_ms": 45.57435327999883
+    },
+    {
+      "name": "irem",
+      "desc": "iconst_5; iconst_3; irem; pop2",
+      "body_insns": 4,
+      "avg_ms": 48.01238659999967
+    },
+    {
+      "name": "ineg",
+      "desc": "iconst_5; ineg; pop2",
+      "body_insns": 3,
+      "avg_ms": 38.66896843999939
+    },
+    {
+      "name": "iand",
+      "desc": "iconst_5; iconst_3; iand; pop2",
+      "body_insns": 4,
+      "avg_ms": 42.77850839999985
+    },
+    {
+      "name": "ior",
+      "desc": "iconst_5; iconst_3; ior; pop2",
+      "body_insns": 4,
+      "avg_ms": 42.951030039997136
+    },
+    {
+      "name": "ixor",
+      "desc": "iconst_5; iconst_3; ixor; pop2",
+      "body_insns": 4,
+      "avg_ms": 42.83923163999873
+    },
+    {
+      "name": "ishl",
+      "desc": "iconst_5; iconst_3; ishl; pop2",
+      "body_insns": 4,
+      "avg_ms": 44.0046250800026
+    },
+    {
+      "name": "ishr",
+      "desc": "iconst_5; iconst_3; ishr; pop2",
+      "body_insns": 4,
+      "avg_ms": 44.23498015999712
+    },
+    {
+      "name": "iushr",
+      "desc": "iconst_5; iconst_3; iushr; pop2",
+      "body_insns": 4,
+      "avg_ms": 43.94265012000062
+    },
+    {
+      "name": "iconst",
+      "desc": "iconst_5; pop2",
+      "body_insns": 2,
+      "avg_ms": 35.300413239997965
+    },
+    {
+      "name": "bipush_int",
+      "desc": "bipush 5; pop2",
+      "body_insns": 2,
+      "avg_ms": 35.78247655999917
+    },
+    {
+      "name": "sipush_int",
+      "desc": "sipush 5; pop2",
+      "body_insns": 2,
+      "avg_ms": 35.713266720001116
+    },
+    {
+      "name": "iipush",
+      "desc": "iipush 5; pop2",
+      "body_insns": 2,
+      "avg_ms": 36.69396680000091
+    },
+    {
+      "name": "i2b",
+      "desc": "iconst_5; i2b; pop",
+      "body_insns": 3,
+      "avg_ms": 38.67954843999712
+    },
+    {
+      "name": "icmp",
+      "desc": "iconst_5; iconst_3; icmp; pop",
+      "body_insns": 4,
+      "avg_ms": 43.20978679999598
+    },
+    {
+      "name": "iinc",
+      "desc": "iinc 3 1",
+      "body_insns": 1,
+      "avg_ms": 33.315843280000195
+    },
+    {
+      "name": "pop2",
+      "desc": "iconst_5; pop2",
+      "body_insns": 2,
+      "avg_ms": 35.1802515199995
+    },
+    {
+      "name": "ifne",
+      "desc": "sconst_5; ifne L; L:",
+      "body_insns": 2,
+      "avg_ms": 37.041968279997946
+    },
+    {
+      "name": "if_scmpeq",
+      "desc": "sconst_5; sconst_5; if_scmpeq L; L:",
+      "body_insns": 3,
+      "avg_ms": 40.529433439998
+    },
+    {
+      "name": "aload",
+      "desc": "aload_3; pop",
+      "body_insns": 2,
+      "avg_ms": 35.098339999998984
+    },
+    {
+      "name": "goto_w",
+      "desc": "goto_w L; L:",
+      "body_insns": 1,
+      "avg_ms": 32.05787663999786
+    },
+    {
+      "name": "ireturn",
+      "desc": "invokestatic bench_iret; pop2",
+      "body_insns": 2,
+      "avg_ms": 58.61481828000251
+    },
+    {
+      "name": "pop2_baseline",
+      "desc": "sconst_5; sconst_3; pop2",
+      "body_insns": 3,
+      "avg_ms": 38.29019004000202
+    },
+    {
+      "name": "slookupswitch",
+      "desc": "sconst; slookupswitch; L:",
+      "body_insns": 2,
+      "avg_ms": 38.467049919999
+    },
+    {
+      "name": "stableswitch",
+      "desc": "sconst; stableswitch; L:",
+      "body_insns": 2,
+      "avg_ms": 41.358411719996866
+    },
+    {
+      "name": "empty",
+      "desc": "(empty body, baseline)",
+      "body_insns": 0,
+      "avg_ms": 29.001453320000792
+    },
+    {
+      "name": "exc_baseline",
+      "desc": "aconst_null; athrow (exc calib)",
+      "body_insns": 0,
+      "avg_ms": 79.19782491999513
+    },
+    {
+      "name": "exc_sconst",
+      "desc": "sconst_5; aconst_null; athrow",
+      "body_insns": 1,
+      "avg_ms": 84.23089659999619
+    },
+    {
+      "name": "exc_iconst",
+      "desc": "iconst_5; aconst_null; athrow",
+      "body_insns": 1,
+      "avg_ms": 86.39670671999852
+    },
+    {
+      "name": "exc_sload",
+      "desc": "sload_3; aconst_null; athrow",
+      "body_insns": 1,
+      "avg_ms": 87.73690160000058
+    },
+    {
+      "name": "int_baseline",
+      "desc": "iconst_5; iconst_3; pop2; pop2",
+      "body_insns": 4,
+      "avg_ms": 41.51656000000003
+    },
+    {
+      "name": "arr_baseline",
+      "desc": "getstatic_a; sconst_0; pop; pop",
+      "body_insns": 4,
+      "avg_ms": 45.16303487999892
+    },
+    {
+      "name": "getfield_a_this",
+      "desc": "getfield_a_this; pop",
+      "body_insns": 2,
+      "avg_ms": 46.62215656000001
+    },
+    {
+      "name": "bastore",
+      "desc": "getstatic_a; sconst_0; sconst_5; bastore",
+      "body_insns": 4,
+      "avg_ms": 58.21675996000181
+    },
+    {
+      "name": "sastore",
+      "desc": "getstatic_a; sconst_1; sconst_5; sastore",
+      "body_insns": 4,
+      "avg_ms": 62.56574184000442
+    },
+    {
+      "name": "arr_baseline2",
+      "desc": "getstatic_a; sconst_0; pop2",
+      "body_insns": 3,
+      "avg_ms": 42.69687155999577
+    },
+    {
+      "name": "eeprom_baload",
+      "desc": "getstatic_a EEPROM; sconst_0; baload; pop",
+      "body_insns": 4,
+      "avg_ms": 58.368563319997975
+    },
+    {
+      "name": "eeprom_bastore",
+      "desc": "getstatic_a EEPROM; sconst_0; sconst_5; bastore",
+      "body_insns": 4,
+      "avg_ms": 58.37629004000405
+    },
+    {
+      "name": "empty_eeprom",
+      "desc": "(empty body, 1-iter baseline)",
+      "body_insns": 0,
+      "avg_ms": 28.925914960000227
+    },
+    {
+      "name": "linear_baseline",
+      "desc": "getstatic_a; sload_0; sconst_5; pop2; pop",
+      "body_insns": 5,
+      "avg_ms": 48.84309503999816
+    },
+    {
+      "name": "ram_linear_read",
+      "desc": "getstatic_a RAM; sload_0; baload; pop",
+      "body_insns": 4,
+      "avg_ms": 58.28937168000266
+    },
+    {
+      "name": "eeprom_linear_read",
+      "desc": "getstatic_a EEPROM; sload_0; baload; pop",
+      "body_insns": 4,
+      "avg_ms": 59.02089328000102
+    },
+    {
+      "name": "ram_linear_write",
+      "desc": "getstatic_a RAM; sload_0; sconst_5; bastore",
+      "body_insns": 4,
+      "avg_ms": 58.52845176000301
+    },
+    {
+      "name": "eeprom_linear_write",
+      "desc": "getstatic_a EEPROM; sload_0; sconst_5; bastore",
+      "body_insns": 4,
+      "avg_ms": 58.65811336000206
+    },
+    {
+      "name": "getstatic_b",
+      "desc": "getstatic_b; pop",
+      "body_insns": 2,
+      "avg_ms": 39.68214667999973
+    },
+    {
+      "name": "putstatic_b",
+      "desc": "sconst_5; putstatic_b",
+      "body_insns": 2,
+      "avg_ms": 40.904923360002385
+    },
+    {
+      "name": "getstatic_s",
+      "desc": "getstatic_s; pop",
+      "body_insns": 2,
+      "avg_ms": 39.80698328000187
+    },
+    {
+      "name": "putstatic_s",
+      "desc": "sconst_5; putstatic_s",
+      "body_insns": 2,
+      "avg_ms": 40.95378159999939
+    }
+  ]
+}

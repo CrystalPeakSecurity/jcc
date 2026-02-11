@@ -1,7 +1,4 @@
-"""Base driver class for demo applets.
-
-Provides common functionality for all demo drivers.
-"""
+"""Base driver class for demo applets."""
 
 import argparse
 import sys
@@ -13,7 +10,7 @@ from .apdu import build_apdu
 from .config import DriverConfig, load_config
 from .display import DisplayConfig, GameDisplay
 from .screen import Framebuffer
-from .session import CardSession, Session, SimSession, get_session, load_applet
+from .session import CardSession, Session, SimSession, get_session, load_applet, load_applet_card, unload_applet
 
 
 class BaseDriver:
@@ -71,26 +68,45 @@ class BaseDriver:
             root_dir=self.root_dir,
         )
 
-    def cmd_render(self, backend: str = None) -> None:
+    def cmd_load_card(self, jar_path: str) -> None:
+        """Load applet onto real card via GlobalPlatformPro."""
+        load_applet_card(
+            cap_path=jar_path,
+            root_dir=self.root_dir,
+        )
+
+    def cmd_unload(self) -> None:
+        """Uninstall and unload applet from simulator."""
+        unload_applet(
+            pkg_aid=self.config.pkg_aid,
+            applet_aid=self.config.applet_aid,
+            root_dir=self.root_dir,
+        )
+
+    def cmd_render(self, backend: str = None, frame: int = 0, hex_mode: bool = False) -> None:
         """Render a single frame."""
         if self.config.screen is None:
             print("No screen configuration", file=sys.stderr)
             return
 
         with self.get_session(backend) as session:
-            apdu = build_apdu(
-                self.INS_FRAME,
-                data=self.get_initial_input(),
-                ne=self.config.screen.framebuffer_size,
-            )
-            data, sw = session.send(apdu)
+            for i in range(frame + 1):
+                apdu = build_apdu(
+                    self.INS_FRAME,
+                    data=self.get_initial_input(),
+                    ne=self.config.screen.framebuffer_size,
+                )
+                data, sw = session.send(apdu)
 
-            if sw != 0x9000:
-                print(f"Error: SW={sw:04X}", file=sys.stderr)
-                return
+                if sw != 0x9000:
+                    print(f"Error at frame {i}: SW={sw:04X}", file=sys.stderr)
+                    return
 
             fb = Framebuffer(self.config.screen, data)
-            print(self.render_frame(fb, None))
+            if hex_mode:
+                print(fb.render_hex())
+            else:
+                print(self.render_frame(fb, f"Frame {frame}"))
 
     def cmd_play(self, backend: str = None) -> None:
         """Interactive play mode with unified display."""
@@ -415,12 +431,18 @@ class BaseDriver:
         subparsers = parser.add_subparsers(dest="command", required=True)
 
         # load command
-        load_parser = subparsers.add_parser("load", help="Load applet onto simulator")
+        load_parser = subparsers.add_parser("load", help="Load applet onto simulator or card")
         load_parser.add_argument("jar", help="Path to JAR/CAP file")
+        load_parser.add_argument("--card", action="store_true", help="Load onto real card via GlobalPlatformPro")
+
+        # unload command
+        subparsers.add_parser("unload", help="Unload applet from simulator")
 
         # render command
         render_parser = subparsers.add_parser("render", help="Render single frame")
         render_parser.add_argument("--card", action="store_true", help="Use real card")
+        render_parser.add_argument("--frame", type=int, default=0, help="Frame number to render")
+        render_parser.add_argument("--hex", action="store_true", help="Render as hex color indices")
 
         # play command
         play_parser = subparsers.add_parser("play", help="Interactive play")
@@ -432,10 +454,15 @@ class BaseDriver:
         parsed = parser.parse_args(args)
 
         if parsed.command == "load":
-            self.cmd_load(parsed.jar)
+            if parsed.card:
+                self.cmd_load_card(parsed.jar)
+            else:
+                self.cmd_load(parsed.jar)
+        elif parsed.command == "unload":
+            self.cmd_unload()
         elif parsed.command == "render":
             backend = "card" if parsed.card else None
-            self.cmd_render(backend)
+            self.cmd_render(backend, frame=parsed.frame, hex_mode=parsed.hex)
         elif parsed.command == "play":
             backend = "card" if parsed.card else None
             self.cmd_play(backend)

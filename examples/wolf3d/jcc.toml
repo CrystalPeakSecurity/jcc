@@ -1,0 +1,16 @@
+[package]
+name = "com/crystalpeak/wolf3d"
+aid = "A0000000620300D002"
+version = "1.0"
+
+[applet]
+aid = "A0000000620300D00201"
+class = "Applet"
+
+[options]
+javacard_version = "3.0.4"
+extended_apdu = true
+max_stack_slots = 210
+
+[build]
+command = "clang -S -emit-llvm -g -target msp430-unknown-unknown -O1 -fno-vectorize -fno-slp-vectorize -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"

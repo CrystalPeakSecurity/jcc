@@ -1,15 +1,18 @@
 [package]
-name = "sh/trey/game2048"
-aid = "A0000000620300F002"
+name = "com/crystalpeak/game2048"
+aid = "A0000000620300F003"
+version = "1.0"
 
 [applet]
-aid = "A0000000620300F00201"
+aid = "A0000000620300F00301"
 class = "Applet"
 
-[analysis]
-max_stack_slots = 64
+[options]
+javacard_version = "3.0.4"
 extended_apdu = true
-javacard_version = "2.2.2"
+
+[build]
+command = "clang -S -emit-llvm -g -target wasm32-unknown-unknown -O1 -fno-jump-tables -nostdinc -I $JCC_ROOT/include -I . main.c -o build/main.ll"
 
 [driver]
 game_name = "2048"
@@ -22,20 +25,20 @@ continuous_frames = false
 single_input = true
 controls_wasd = true
 palette = [
-    [187, 173, 160],  # 0: Background
-    [205, 193, 180],  # 1: Empty tile
-    [238, 228, 218],  # 2: Tile 2
-    [237, 224, 200],  # 3: Tile 4
-    [242, 177, 121],  # 4: Tile 8
-    [245, 149, 99],   # 5: Tile 16
-    [246, 124, 95],   # 6: Tile 32
-    [246, 94, 59],    # 7: Tile 64
-    [237, 207, 114],  # 8: Tile 128
-    [237, 204, 97],   # 9: Tile 256
-    [237, 200, 80],   # 10: Tile 512
-    [237, 197, 63],   # 11: Tile 1024
-    [237, 194, 46],   # 12: Tile 2048
-    [119, 110, 101],  # 13: Dark text
-    [249, 246, 242],  # 14: Light text
-    [187, 173, 160],  # 15: Grid
+    [187, 173, 160],
+    [205, 193, 180],
+    [238, 228, 218],
+    [237, 224, 200],
+    [242, 177, 121],
+    [245, 149, 99],
+    [246, 124, 95],
+    [246, 94, 59],
+    [237, 207, 114],
+    [237, 204, 97],
+    [237, 200, 80],
+    [237, 197, 63],
+    [237, 194, 46],
+    [119, 110, 101],
+    [249, 246, 242],
+    [187, 173, 160],
 ]

@@ -7,6 +7,10 @@
 
 #include "music.h"
 
+// Forward declarations for synth functions
+void synth_note_on(byte note, byte velocity);
+void synth_note_off(void);
+
 // Player state
 static short music_event_idx;    // Current event index
 static short music_samples_left; // Samples until next event

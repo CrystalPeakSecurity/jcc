@@ -34,8 +34,20 @@ public class JCCClient {
 
     static final String ISD_AID = "aid:A000000151000000";
     static String HOST = "localhost";
-    static int PORT = 9025;
+    static int PORT = getPortFromEnv();
     static boolean JSON_OUTPUT = false;
+
+    static int getPortFromEnv() {
+        String portStr = System.getenv("SIM_PORT");
+        if (portStr != null && !portStr.isEmpty()) {
+            try {
+                return Integer.parseInt(portStr);
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid SIM_PORT: " + portStr + ", using default 9025");
+            }
+        }
+        return 9025;
+    }
 
     public static void main(String[] args) {
         if (args.length < 1) {

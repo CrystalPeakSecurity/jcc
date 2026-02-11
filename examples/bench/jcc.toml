@@ -1,0 +1,11 @@
+# Minimal config for jcc.driver (AIDs only — build uses build.sh, not jcc)
+
+[package]
+aid = "A000000062030103"
+
+[applet]
+aid = "A00000006203010301"
+class = "BenchApplet"
+
+[options]
+javacard_version = "3.0.4"

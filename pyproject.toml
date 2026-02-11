@@ -1,54 +1,57 @@
 [project]
 name = "jcc"
-version = "0.1.0"
-description = "C-to-JavaCard bytecode compiler"
+version = "2.0.0"
+description = "LLVM IR to JavaCard bytecode compiler"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
-    "blessed>=1.27.0",
-    "cffi>=2.0.0",
-    "cyclopts>=4.4.3",
-    "mido>=1.3.3",
-    "numpy>=2.4.1",
-    "opencv-python>=4.13.0.90",
-    "pillow>=10.0.0",
-    "pycparser>=2.23",
-    "pyscard>=2.3.1",
-    "rich>=13.0.0",
-    "sounddevice>=0.5.5",
-    "textual>=7.3.0",
+    "llvmlite>=0.43.0",
+    "cyclopts>=3.0",
+    "blessed>=1.30.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyright>=1.1.408",
+    "pytest>=8.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.14.14",
+]
+driver = [
+    "blessed>=1.20",
+    "pyscard>=2.0",
+    "pillow>=10.0",
 ]
 
 [project.scripts]
-jcc = "jcc.cli:app"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/jcc"]
+jcc = "jcc.cli:run"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[dependency-groups]
-dev = [
-    "prek>=0.2.30",
-    "pyright>=1.1.407",
-    "pytest>=9.0.2",
-    "pytest-env>=1.1.5",
-    "pytest-timeout>=2.3.1",
-    "ruff>=0.14.10",
-]
-
-[tool.ruff]
-line-length = 120
+[tool.hatch.build.targets.wheel]
+packages = ["src/jcc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-addopts = ["-v", "--tb=short"]
+addopts = "-v --tb=short"
 timeout = 10
-markers = [
-    "simulator: marks tests that require the JavaCard simulator (Docker + JCDK)",
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
+    "pytest>=8.0",
+    "pytest-timeout>=2.3.1",
+    "ruff>=0.14.14",
 ]
 
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

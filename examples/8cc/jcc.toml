@@ -1,0 +1,14 @@
+[package]
+name = "com/jcc/eightcc"
+aid = "A000000062030801"
+version = "1.0"
+
+[applet]
+aid = "A00000006203080101"
+class = "EightCCApplet"
+
+[options]
+javacard_version = "3.0.4"
+
+[build]
+command = "clang -S -emit-llvm -g -target wasm32-unknown-unknown -O1 -fno-jump-tables -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"

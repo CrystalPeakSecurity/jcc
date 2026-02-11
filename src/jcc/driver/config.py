@@ -126,7 +126,7 @@ def load_config(demo_dir: Path) -> DriverConfig:
         screen=screen,
         target_fps=driver.get("target_fps", 30),
         input_mode=driver.get("input_mode", "direction"),
-        extended_apdu=raw.get("analysis", {}).get("extended_apdu", False),
+        extended_apdu=raw.get("options", raw.get("compile", raw.get("analysis", {}))).get("extended_apdu", False),
         daemon_enabled=driver.get("daemon_enabled", False),
         daemon_socket=driver.get("daemon_socket"),
         recording_enabled=driver.get("recording_enabled", False),

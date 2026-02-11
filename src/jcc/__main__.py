@@ -1,5 +1,6 @@
-"""Allow running jcc as a module: python -m jcc"""
+"""Entry point for python -m jcc."""
 
-from jcc.cli import app
+from jcc.cli import run
 
-app()
+if __name__ == "__main__":
+    run()

@@ -1,1 +1,1 @@
-"""Code generation package."""
+"""Code generation: expression trees and bytecode emission."""

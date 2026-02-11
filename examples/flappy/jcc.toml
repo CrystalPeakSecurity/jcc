@@ -1,15 +1,16 @@
 [package]
-name = "sh/trey/flappy"
+name = "com/crystalpeak/flappy"
 aid = "A0000000620300F001"
 
 [applet]
 aid = "A0000000620300F00101"
 class = "Applet"
 
-[analysis]
-max_stack_slots = 64
-extended_apdu = false
-javacard_version = "2.2.2"
+[options]
+javacard_version = "3.0.4"
+
+[build]
+command = "clang -S -emit-llvm -g -target wasm32-unknown-unknown -O1 -fno-jump-tables -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"
 
 [driver]
 game_name = "Flappy"
@@ -21,8 +22,7 @@ input_mode = "direction"
 continuous_frames = true
 single_input = true
 controls_space = "Flap"
-# Custom 1bpp palette: dark gray (background) and white (foreground)
 palette = [
-    [8, 8, 8],       # 0: Very dark gray
-    [255, 255, 255], # 1: White
+    [8, 8, 8],
+    [255, 255, 255],
 ]

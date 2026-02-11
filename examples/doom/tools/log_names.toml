@@ -132,6 +132,30 @@
 0x94 = "facetarget_after_angle"
 0x95 = "facetarget_done"
 
+# BSP debug (0xD0-0xDF)
+0xD0 = "subsector"
+0xD1 = "addline"
+0xD2 = "before_swr"
+0xD3 = "in_swr"
+0xD4 = "swr_before_ptd"
+0xD5 = "swr_before_scale"
+0xD6 = "swr_before_loop"
+
+# BSP summary + first SWR calls (0xC0-0xCF)
+0xC0 = "bsp_subsectors"
+0xC1 = "bsp_segs"
+0xC2 = "bsp_swr_count"
+0xC3 = "swr_seg"
+0xC4 = "swr_start"
+0xC5 = "swr_stop"
+0xC6 = "bbox_reject_reason"
+0xC7 = "bbox_calls"
+0xC8 = "bbox_visible"
+0xC9 = "bbox_angle1"
+0xCA = "bbox_angle2"
+0xCB = "bbox_sx1"
+0xCC = "bbox_sx2"
+
 [errors]
 0xE0 = "ERR_SOLIDSEGS_OVERFLOW"
 0xE1 = "ERR_BSP_STACK_OVERFLOW"

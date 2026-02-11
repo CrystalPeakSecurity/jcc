@@ -1,0 +1,166 @@
+"""JavaCard Development Kit path resolution.
+
+Provides unified path resolution for JCDK tools and export files,
+used by both api/ (for loading API registry) and output/ (for capgen).
+"""
+
+import os
+import platform
+import shutil
+from dataclasses import dataclass
+from pathlib import Path
+
+
+class JCDKError(Exception):
+    """JavaCard SDK not found or misconfigured."""
+
+
+@dataclass(frozen=True)
+class JCDKPaths:
+    """Resolved paths to JavaCard SDK tools and files."""
+
+    jc_home: Path
+    java_home: Path
+    capgen: Path
+    verifycap: Path
+    exp2text: Path
+    export_dir: Path
+
+    def get_env(self) -> dict[str, str]:
+        """Get environment dict with JC_HOME and JAVA_HOME set."""
+        env = os.environ.copy()
+        env["JC_HOME"] = str(self.jc_home)
+        env["JAVA_HOME"] = str(self.java_home)
+        return env
+
+
+def get_jcdk(javacard_version: str) -> JCDKPaths:
+    """Resolve JCDK paths for the specified JavaCard version.
+
+    Checks JC_HOME environment variable, falls back to bundled SDK at etc/jcdk.
+    Requires exact version match for export files.
+
+    Args:
+        javacard_version: Version string like "3.2.0" or "3_2_0".
+
+    Returns:
+        JCDKPaths with all resolved paths.
+
+    Raises:
+        JCDKError: If SDK or required tools/files not found.
+    """
+    jc_home = _find_jc_home()
+    java_home = _find_java_home()
+
+    # Tools
+    exp2text = _find_tool(jc_home, "exp2text")
+    capgen = _find_tool(jc_home, "capgen")
+    verifycap = _find_tool(jc_home, "verifycap")
+
+    # Export files - try exact version match, then with .0 suffix
+    export_dir = jc_home / "api_export_files" / f"api_export_files_{javacard_version}"
+    if not export_dir.exists():
+        # Try with .0 suffix for versions like "3.2" -> "3.2.0"
+        export_dir = jc_home / "api_export_files" / f"api_export_files_{javacard_version}.0"
+    if not export_dir.exists():
+        raise JCDKError(f"Export files for JavaCard {javacard_version} not found at {export_dir}")
+
+    return JCDKPaths(
+        jc_home=jc_home,
+        java_home=java_home,
+        capgen=capgen,
+        verifycap=verifycap,
+        exp2text=exp2text,
+        export_dir=export_dir,
+    )
+
+
+def _find_jc_home() -> Path:
+    """Find JavaCard SDK installation directory.
+
+    Returns:
+        Path to SDK root.
+
+    Raises:
+        JCDKError: If SDK not found.
+    """
+    # Check environment variable first
+    jc_home_env = os.environ.get("JC_HOME")
+    if jc_home_env:
+        path = Path(jc_home_env)
+        if path.exists():
+            return path
+        raise JCDKError(f"JC_HOME set to {jc_home_env} but path does not exist")
+
+    # Check bundled SDK
+    bundled = Path(__file__).parent.parent.parent / "etc" / "jcdk"
+    if bundled.exists():
+        return bundled
+
+    raise JCDKError(
+        "JavaCard SDK not found. Set JC_HOME environment variable or install SDK to etc/jcdk"
+    )
+
+
+def _find_java_home() -> Path:
+    """Find Java installation directory.
+
+    Returns:
+        Path to Java home.
+
+    Raises:
+        JCDKError: If Java not found.
+    """
+    # Check environment variable first
+    java_home_env = os.environ.get("JAVA_HOME")
+    if java_home_env:
+        path = Path(java_home_env)
+        if path.exists():
+            return path
+        raise JCDKError(f"JAVA_HOME set to {java_home_env} but path does not exist")
+
+    # macOS: try Homebrew OpenJDK 17
+    if platform.system() == "Darwin":
+        homebrew_java = Path("/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home")
+        if homebrew_java.exists():
+            return homebrew_java
+
+    # Try to find java in PATH and derive JAVA_HOME
+    java_path = shutil.which("java")
+    if java_path:
+        # java is typically at $JAVA_HOME/bin/java
+        java_home = Path(java_path).parent.parent
+        if (java_home / "bin" / "java").exists():
+            return java_home
+
+    raise JCDKError("Java not found. Set JAVA_HOME environment variable or install Java 17.")
+
+
+def _find_tool(jc_home: Path, tool_name: str) -> Path:
+    """Find a tool in the SDK bin directory.
+
+    Tries both .sh (Unix) and plain (Windows) variants.
+
+    Args:
+        jc_home: SDK root directory.
+        tool_name: Tool name without extension.
+
+    Returns:
+        Path to the tool.
+
+    Raises:
+        JCDKError: If tool not found.
+    """
+    bin_dir = jc_home / "bin"
+
+    # Try .sh extension first (Unix)
+    sh_path = bin_dir / f"{tool_name}.sh"
+    if sh_path.exists():
+        return sh_path
+
+    # Try without extension (Windows or direct executable)
+    plain_path = bin_dir / tool_name
+    if plain_path.exists():
+        return plain_path
+
+    raise JCDKError(f"{tool_name} not found in {bin_dir}")

@@ -7,6 +7,8 @@ version = "1.0"
 aid = "A00000006203010101"
 class = "MinimalApplet"
 
-[analysis]
-max_stack_slots = 64
+[options]
 javacard_version = "3.0.4"
+
+[build]
+command = "clang -S -emit-llvm -g -target wasm32-unknown-unknown -O1 -fno-jump-tables -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"

@@ -1,10 +1,4 @@
-"""Unified display rendering for demo drivers.
-
-Provides a standardized UI layout inspired by DOOM:
-- Header with game name, mode, frame count, FPS, peak ms
-- Centered framebuffer with border
-- Controls at bottom with visual WASD layout
-"""
+"""Terminal display rendering for demo drivers."""
 
 from dataclasses import dataclass, field
 from pathlib import Path

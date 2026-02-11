@@ -1,265 +1,170 @@
-"""Tests for the ProjectConfig class."""
+"""Tests for output/config.py - TOML parsing and AID validation."""
 
-import pytest
+import tempfile
 from pathlib import Path
 
-from jcc.aid import AID
-from jcc.config import AnalysisConfig, ProjectConfig, PackageConfig, AppletConfig, ConfigError
+import pytest
+
+from jcc.output.config import (
+    ConfigError,
+    format_aid,
+    format_aid_jca,
+    load_config,
+    parse_aid,
+)
 
 
-class TestProjectConfigFromToml:
-    def test_basic_config(self):
-        toml = """
-        [package]
-        name = "com/test/counter"
-        aid = "A000000062030105"
+class TestParseAid:
+    """Tests for parse_aid()."""
 
-        [applet]
-        aid = "A0000000620301050501"
-        class = "CounterApplet"
-        """
-        config = ProjectConfig.from_toml_string(toml)
+    def test_valid_aid(self) -> None:
+        """Parse a valid AID string."""
+        aid = parse_aid("A0000000620300F002")
+        assert aid == (0xA0, 0x00, 0x00, 0x00, 0x62, 0x03, 0x00, 0xF0, 0x02)
 
-        assert config.package.name == "com/test/counter"
-        assert config.package.aid.to_hex() == "A000000062030105"
-        assert config.package.version == "1.0"
-        assert config.applet.aid.to_hex() == "A0000000620301050501"
-        assert config.applet.class_name == "CounterApplet"
+    def test_minimum_length(self) -> None:
+        """5 bytes is minimum valid AID length."""
+        aid = parse_aid("A000000001")  # 5 bytes
+        assert len(aid) == 5
 
-    def test_config_with_version(self):
-        toml = """
-        [package]
-        name = "com/test/app"
-        aid = "A000000062030105"
-        version = "2.1"
+    def test_maximum_length(self) -> None:
+        """16 bytes is maximum valid AID length."""
+        aid = parse_aid("A0" * 16)  # 16 bytes
+        assert len(aid) == 16
 
-        [applet]
-        aid = "A0000000620301050501"
-        class = "MyApplet"
-        """
-        config = ProjectConfig.from_toml_string(toml)
-        assert config.package.version == "2.1"
+    def test_odd_length_rejected(self) -> None:
+        """AID with odd number of hex chars is invalid."""
+        with pytest.raises(ConfigError, match="odd length"):
+            parse_aid("A0000000620")  # 11 hex chars (odd)
 
-    def test_missing_package_name(self):
-        toml = """
-        [package]
-        aid = "A000000062030105"
+    def test_too_short_rejected(self) -> None:
+        """AID shorter than 5 bytes is invalid."""
+        with pytest.raises(ConfigError, match="5-16 bytes"):
+            parse_aid("A0000000")  # 4 bytes
 
-        [applet]
-        aid = "A0000000620301050501"
-        class = "MyApplet"
-        """
-        with pytest.raises(ConfigError, match="package.name is required"):
-            ProjectConfig.from_toml_string(toml)
+    def test_too_long_rejected(self) -> None:
+        """AID longer than 16 bytes is invalid."""
+        with pytest.raises(ConfigError, match="5-16 bytes"):
+            parse_aid("A0" * 17)  # 17 bytes
 
-    def test_missing_package_aid(self):
-        toml = """
-        [package]
-        name = "com/test/app"
+    def test_invalid_hex_rejected(self) -> None:
+        """Non-hex characters are rejected."""
+        with pytest.raises(ConfigError, match="not hex"):
+            parse_aid("ZZZZZZZZZZ")
 
-        [applet]
-        aid = "A0000000620301050501"
-        class = "MyApplet"
-        """
-        with pytest.raises(ConfigError, match="package.aid is required"):
-            ProjectConfig.from_toml_string(toml)
-
-    def test_missing_applet_aid(self):
-        toml = """
-        [package]
-        name = "com/test/app"
-        aid = "A000000062030105"
-
-        [applet]
-        class = "MyApplet"
-        """
-        with pytest.raises(ConfigError, match="applet.aid is required"):
-            ProjectConfig.from_toml_string(toml)
-
-    def test_missing_applet_class(self):
-        toml = """
-        [package]
-        name = "com/test/app"
-        aid = "A000000062030105"
-
-        [applet]
-        aid = "A0000000620301050501"
-        """
-        with pytest.raises(ConfigError, match="applet.class is required"):
-            ProjectConfig.from_toml_string(toml)
-
-    def test_invalid_package_aid(self):
-        toml = """
-        [package]
-        name = "com/test/app"
-        aid = "INVALID"
-
-        [applet]
-        aid = "A0000000620301050501"
-        class = "MyApplet"
-        """
-        with pytest.raises(ConfigError, match="Invalid package.aid"):
-            ProjectConfig.from_toml_string(toml)
-
-    def test_invalid_applet_aid(self):
-        toml = """
-        [package]
-        name = "com/test/app"
-        aid = "A000000062030105"
-
-        [applet]
-        aid = "NOT_VALID"
-        class = "MyApplet"
-        """
-        with pytest.raises(ConfigError, match="Invalid applet.aid"):
-            ProjectConfig.from_toml_string(toml)
-
-    def test_invalid_toml_syntax(self):
-        toml = """
-        [package
-        name = "bad syntax"
-        """
-        with pytest.raises(ConfigError, match="Invalid TOML"):
-            ProjectConfig.from_toml_string(toml)
+    def test_lowercase_accepted(self) -> None:
+        """Lowercase hex is accepted."""
+        aid = parse_aid("a0000000620300f002")
+        assert aid == (0xA0, 0x00, 0x00, 0x00, 0x62, 0x03, 0x00, 0xF0, 0x02)
 
 
-class TestProjectConfigFromFile:
-    def test_load_from_file(self, tmp_path: Path):
-        config_file = tmp_path / "jcc.toml"
-        config_file.write_text("""
-        [package]
-        name = "com/test/file"
-        aid = "A000000062030105"
+class TestFormatAid:
+    """Tests for format_aid() and format_aid_jca()."""
 
-        [applet]
-        aid = "A0000000620301050501"
-        class = "FileApplet"
-        """)
+    def test_format_aid(self) -> None:
+        """Format AID as hex string."""
+        aid = (0xA0, 0x00, 0x00, 0x00, 0x62, 0x03, 0x00, 0xF0, 0x02)
+        assert format_aid(aid) == "A0000000620300F002"
 
-        config = ProjectConfig.from_toml(config_file)
+    def test_format_aid_jca(self) -> None:
+        """Format AID for JCA output."""
+        aid = (0xA0, 0x00, 0x00, 0x00, 0x62, 0x03, 0x00, 0xF0, 0x02)
+        assert format_aid_jca(aid) == "0xA0:0x00:0x00:0x00:0x62:0x03:0x00:0xF0:0x02"
 
-        assert config.package.name == "com/test/file"
-        assert config.applet.class_name == "FileApplet"
-
-    def test_file_not_found(self, tmp_path: Path):
-        with pytest.raises(ConfigError, match="Config file not found"):
-            ProjectConfig.from_toml(tmp_path / "nonexistent.toml")
+    def test_roundtrip(self) -> None:
+        """parse_aid and format_aid are inverses."""
+        original = "A0000000620300F002"
+        aid = parse_aid(original)
+        assert format_aid(aid) == original
 
 
-class TestProjectConfigDefaults:
-    def test_minimal_defaults(self):
-        config = ProjectConfig.with_defaults()
+class TestLoadConfig:
+    """Tests for load_config()."""
 
-        assert config.package.name == "com/example/applet"
-        assert config.package.aid.to_hex() == "A000000062030101"
-        assert config.package.version == "1.0"
-        assert config.applet.aid.to_hex() == "A00000006203010101"
-        assert config.applet.class_name == "Applet"
+    def test_valid_config(self) -> None:
+        """Load a valid configuration file."""
+        toml_content = """
+[package]
+name = "com/example/myapplet"
+aid = "A0000000620300F002"
+version = "1.0"
 
-    def test_custom_package_name(self):
-        config = ProjectConfig.with_defaults(package_name="com/my/app")
-        assert config.package.name == "com/my/app"
+[applet]
+name = "MyApplet"
+aid = "A0000000620300F00201"
 
-    def test_custom_aids_as_strings(self):
-        config = ProjectConfig.with_defaults(
-            package_aid="A000000062030105",
-            applet_aid="A0000000620301050501",
-        )
-        assert config.package.aid.to_hex() == "A000000062030105"
-        assert config.applet.aid.to_hex() == "A0000000620301050501"
+[javacard]
+version = "3.2.0"
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(toml_content)
+            f.flush()
+            config = load_config(Path(f.name))
 
-    def test_custom_aids_as_aid_objects(self):
-        pkg_aid = AID.parse("A000000062030105")
-        app_aid = AID.parse("A0000000620301050501")
+        assert config.package_name == "com/example/myapplet"
+        assert config.package_aid == (0xA0, 0x00, 0x00, 0x00, 0x62, 0x03, 0x00, 0xF0, 0x02)
+        assert config.package_version == "1.0"
+        assert config.applet_name == "MyApplet"
+        assert config.applet_aid == (0xA0, 0x00, 0x00, 0x00, 0x62, 0x03, 0x00, 0xF0, 0x02, 0x01)
+        assert config.javacard_version == "3.2.0"
 
-        config = ProjectConfig.with_defaults(
-            package_aid=pkg_aid,
-            applet_aid=app_aid,
-        )
-        assert config.package.aid == pkg_aid
-        assert config.applet.aid == app_aid
+    def test_missing_package_section(self) -> None:
+        """Missing [package] section raises ConfigError."""
+        toml_content = """
+[applet]
+name = "MyApplet"
+aid = "A0000000620300F00201"
 
-    def test_auto_applet_aid(self):
-        config = ProjectConfig.with_defaults(package_aid="A000000062030105")
-        assert config.applet.aid.to_hex() == "A00000006203010501"
+[javacard]
+version = "3.2.0"
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(toml_content)
+            f.flush()
+            with pytest.raises(ConfigError, match="Missing required"):
+                load_config(Path(f.name))
 
-    def test_custom_class_name(self):
-        config = ProjectConfig.with_defaults(applet_class="MyCustomApplet")
-        assert config.applet.class_name == "MyCustomApplet"
+    def test_missing_aid_field(self) -> None:
+        """Missing aid field raises ConfigError."""
+        toml_content = """
+[package]
+name = "com/example/test"
+version = "1.0"
 
-    def test_custom_version(self):
-        config = ProjectConfig.with_defaults(version="3.0")
-        assert config.package.version == "3.0"
+[applet]
+name = "MyApplet"
+aid = "A0000000620300F00201"
 
+[javacard]
+version = "3.2.0"
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(toml_content)
+            f.flush()
+            with pytest.raises(ConfigError, match="Missing required"):
+                load_config(Path(f.name))
 
-class TestConfigImmutability:
-    def test_project_config_frozen(self):
-        config = ProjectConfig.with_defaults()
-        with pytest.raises(AttributeError):
-            config.package = None  # type: ignore
+    def test_missing_package_name_field(self) -> None:
+        """Missing package name field raises ConfigError."""
+        toml_content = """
+[package]
+aid = "A0000000620300F002"
+version = "1.0"
 
-    def test_package_config_frozen(self):
-        pkg = PackageConfig(name="com/test", aid=AID.parse("A000000062030105"))
-        with pytest.raises(AttributeError):
-            pkg.name = "modified"  # type: ignore
+[applet]
+name = "MyApplet"
+aid = "A0000000620300F00201"
 
-    def test_applet_config_frozen(self):
-        applet = AppletConfig(aid=AID.parse("A0000000620301050501"), class_name="Test")
-        with pytest.raises(AttributeError):
-            applet.class_name = "modified"  # type: ignore
+[javacard]
+version = "3.2.0"
+"""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".toml", delete=False) as f:
+            f.write(toml_content)
+            f.flush()
+            with pytest.raises(ConfigError, match="Missing required"):
+                load_config(Path(f.name))
 
-
-class TestExtendedApduConfig:
-    def test_extended_apdu_defaults_to_false(self):
-        config = ProjectConfig.with_defaults()
-        assert config.analysis.extended_apdu is False
-
-    def test_extended_apdu_from_toml_true(self):
-        toml = """
-        [package]
-        name = "com/test/extended"
-        aid = "A000000062030105"
-
-        [applet]
-        aid = "A0000000620301050501"
-        class = "ExtendedApplet"
-
-        [analysis]
-        extended_apdu = true
-        """
-        config = ProjectConfig.from_toml_string(toml)
-        assert config.analysis.extended_apdu is True
-
-    def test_extended_apdu_from_toml_false(self):
-        toml = """
-        [package]
-        name = "com/test/standard"
-        aid = "A000000062030105"
-
-        [applet]
-        aid = "A0000000620301050501"
-        class = "StandardApplet"
-
-        [analysis]
-        extended_apdu = false
-        """
-        config = ProjectConfig.from_toml_string(toml)
-        assert config.analysis.extended_apdu is False
-
-    def test_extended_apdu_not_specified_defaults_false(self):
-        toml = """
-        [package]
-        name = "com/test/noext"
-        aid = "A000000062030105"
-
-        [applet]
-        aid = "A0000000620301050501"
-        class = "NoExtApplet"
-        """
-        config = ProjectConfig.from_toml_string(toml)
-        assert config.analysis.extended_apdu is False
-
-    def test_analysis_config_frozen(self):
-        analysis = AnalysisConfig(extended_apdu=True)
-        with pytest.raises(AttributeError):
-            analysis.extended_apdu = False  # type: ignore
+    def test_file_not_found(self) -> None:
+        """Non-existent file raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            load_config(Path("/nonexistent/path/jcc.toml"))

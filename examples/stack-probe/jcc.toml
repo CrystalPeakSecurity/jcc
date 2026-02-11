@@ -1,0 +1,11 @@
+# Minimal config for jcc.driver (AIDs only — build uses build.sh, not jcc)
+
+[package]
+aid = "DA43B630ED9302AABB01"
+
+[applet]
+aid = "DA43B630ED9302AABB0101"
+class = "StackProbe"
+
+[options]
+javacard_version = "3.0.4"

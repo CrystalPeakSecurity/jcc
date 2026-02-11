@@ -1,0 +1,15 @@
+[package]
+name = "com/crystalpeak/perf"
+aid = "A0000000620300D002"
+version = "1.0"
+
+[applet]
+aid = "A0000000620300D00201"
+class = "PerfApplet"
+
+[options]
+max_stack_slots = 64
+javacard_version = "3.0.4"
+
+[build]
+command = "clang -S -emit-llvm -g -target wasm32-unknown-unknown -O1 -fno-jump-tables -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"

@@ -1,0 +1,410 @@
+// Hand-written .jca to probe maximum stack depth on the JCVM simulator.
+// Each test_N() method declares .locals N, forcing the JCVM to allocate
+// that many local slots on the stack frame. We touch local 0 to prove
+// the frame is live. If the JCVM can't allocate the frame, it throws.
+//
+// Protocol: APDU 80 01 P1 P2, where slots = (P1 << 8) | P2
+// Returns SW=9000 on success, SW=6F00 on stack overflow.
+//
+// max_locals is a u8 in the method header, so max is 255.
+
+.package com/jcc/stackprobe {
+    .aid 0xDA:0x43:0xB6:0x30:0xED:0x93:0x02:0xAA:0xBB:0x01;
+    .version 1.0;
+
+    .imports {
+        0xA0:0x0:0x0:0x0:0x62:0x1:0x1 1.5;		//javacard/framework
+    }
+
+    .applet {
+        0xDA:0x43:0xB6:0x30:0xED:0x93:0x02:0xAA:0xBB:0x01:0x01 StackProbe;
+    }
+
+    .constantPool {
+        // 0  // javacard/framework/Applet.<init>()V
+        staticMethodRef 0.3.0()V;
+        // 1  // register()V
+        virtualMethodRef 0.3.1()V;
+        // 2
+        .classRef StackProbe;
+        // 3
+        staticMethodRef StackProbe/<init>()V;
+        // 4  // selectingApplet()Z
+        virtualMethodRef 0.3.3()Z;
+        // 5  // setIncomingAndReceive()S
+        virtualMethodRef 0.10.6()S;
+        // 6  // getBuffer()[B
+        virtualMethodRef 0.10.1()[B;
+        // 7  // throwIt(S)V
+        staticMethodRef 0.7.1(S)V;
+        // 8  // userProcess
+        staticMethodRef StackProbe/userProcess(Ljavacard/framework/APDU;S)V;
+
+        // --- Test method refs (9..33) ---
+        // 9
+        staticMethodRef StackProbe/test_2()V;
+        // 10
+        staticMethodRef StackProbe/test_4()V;
+        // 11
+        staticMethodRef StackProbe/test_8()V;
+        // 12
+        staticMethodRef StackProbe/test_16()V;
+        // 13
+        staticMethodRef StackProbe/test_32()V;
+        // 14
+        staticMethodRef StackProbe/test_48()V;
+        // 15
+        staticMethodRef StackProbe/test_64()V;
+        // 16
+        staticMethodRef StackProbe/test_80()V;
+        // 17
+        staticMethodRef StackProbe/test_96()V;
+        // 18
+        staticMethodRef StackProbe/test_112()V;
+        // 19
+        staticMethodRef StackProbe/test_128()V;
+        // 20
+        staticMethodRef StackProbe/test_144()V;
+        // 21
+        staticMethodRef StackProbe/test_160()V;
+        // 22
+        staticMethodRef StackProbe/test_176()V;
+        // 23
+        staticMethodRef StackProbe/test_192()V;
+        // 24
+        staticMethodRef StackProbe/test_200()V;
+        // 25
+        staticMethodRef StackProbe/test_204()V;
+        // 26
+        staticMethodRef StackProbe/test_208()V;
+        // 27
+        staticMethodRef StackProbe/test_210()V;
+        // 28
+        staticMethodRef StackProbe/test_212()V;
+        // 29
+        staticMethodRef StackProbe/test_216()V;
+        // 30
+        staticMethodRef StackProbe/test_220()V;
+        // 31
+        staticMethodRef StackProbe/test_221()V;
+        // 32
+        staticMethodRef StackProbe/test_222()V;
+        // 33
+        staticMethodRef StackProbe/test_223()V;
+        // 34
+        staticMethodRef StackProbe/test_224()V;
+        // 35
+        staticMethodRef StackProbe/test_240()V;
+        // 36
+        staticMethodRef StackProbe/test_255()V;
+    }
+
+    .class public StackProbe 0 extends 0.3 {		// extends javacard/framework/Applet
+
+        .publicMethodTable 7 {
+            equals(Ljava/lang/Object;)Z;
+            register()V;
+            register([BSB)V;
+            selectingApplet()Z;
+            deselect()V;
+            getShareableInterfaceObject(Ljavacard/framework/AID;B)Ljavacard/framework/Shareable;;
+            select()Z;
+            process(Ljavacard/framework/APDU;)V;
+        }
+
+        .packageMethodTable 0 { }
+
+        .method protected <init>()V 0 {
+            .stack 3;
+            .locals 1;
+
+            aload_0;
+            invokespecial 0;
+            aload_0;
+            invokevirtual 1;
+            return;
+        }
+
+        .method public static install([BSB)V 1 {
+            .stack 4;
+            .locals 3;
+
+            new 2;
+            dup;
+            invokespecial 3;
+            pop;
+            return;
+        }
+
+        .method public process(Ljavacard/framework/APDU;)V 7 {
+            .stack 4;
+            .locals 2;
+
+            .descriptor	Ljavacard/framework/APDU;	0.10;
+
+            aload_0;
+            invokevirtual 4;
+            ifne L_return;
+            aload_1;
+            invokevirtual 5;
+            aload_1;
+            swap_x 17;
+            invokestatic 8;
+        L_return:
+            return;
+        }
+
+        // ================================================================
+        // userProcess: read P1:P2 as slot count, dispatch to test_N
+        // ================================================================
+
+        .method private static userProcess(Ljavacard/framework/APDU;S)V {
+            .stack 5;
+            .locals 4;
+
+            .descriptor	Ljavacard/framework/APDU;	0.10;
+
+            // Get APDU buffer
+            aload_0;
+            invokevirtual 6;
+            astore_2;
+
+            // Check INS == 0x01
+            aload_2;
+            sconst_1;
+            baload;
+            sconst_1;
+            if_scmpeq L_ins_ok;
+            goto_w L_error;
+        L_ins_ok:
+
+            // Combine P1:P2 into slot count
+            aload_2;
+            sconst_2;
+            baload;
+            sspush 255;
+            sand;
+            bspush 8;
+            sshl;
+            aload_2;
+            sconst_3;
+            baload;
+            sspush 255;
+            sand;
+            sor;
+            // Stack: slot_count
+
+            slookupswitch L_error 28 2 L_2 4 L_4 8 L_8 16 L_16 32 L_32 48 L_48 64 L_64 80 L_80 96 L_96 112 L_112 128 L_128 144 L_144 160 L_160 176 L_176 192 L_192 200 L_200 204 L_204 208 L_208 210 L_210 212 L_212 216 L_216 220 L_220 221 L_221 222 L_222 223 L_223 224 L_224 240 L_240 255 L_255;
+
+        L_2:
+            invokestatic 9;
+            goto_w L_end;
+        L_4:
+            invokestatic 10;
+            goto_w L_end;
+        L_8:
+            invokestatic 11;
+            goto_w L_end;
+        L_16:
+            invokestatic 12;
+            goto_w L_end;
+        L_32:
+            invokestatic 13;
+            goto_w L_end;
+        L_48:
+            invokestatic 14;
+            goto_w L_end;
+        L_64:
+            invokestatic 15;
+            goto_w L_end;
+        L_80:
+            invokestatic 16;
+            goto_w L_end;
+        L_96:
+            invokestatic 17;
+            goto_w L_end;
+        L_112:
+            invokestatic 18;
+            goto_w L_end;
+        L_128:
+            invokestatic 19;
+            goto_w L_end;
+        L_144:
+            invokestatic 20;
+            goto_w L_end;
+        L_160:
+            invokestatic 21;
+            goto_w L_end;
+        L_176:
+            invokestatic 22;
+            goto_w L_end;
+        L_192:
+            invokestatic 23;
+            goto_w L_end;
+        L_200:
+            invokestatic 24;
+            goto_w L_end;
+        L_204:
+            invokestatic 25;
+            goto_w L_end;
+        L_208:
+            invokestatic 26;
+            goto_w L_end;
+        L_210:
+            invokestatic 27;
+            goto_w L_end;
+        L_212:
+            invokestatic 28;
+            goto_w L_end;
+        L_216:
+            invokestatic 29;
+            goto_w L_end;
+        L_220:
+            invokestatic 30;
+            goto_w L_end;
+        L_221:
+            invokestatic 31;
+            goto_w L_end;
+        L_222:
+            invokestatic 32;
+            goto_w L_end;
+        L_223:
+            invokestatic 33;
+            goto_w L_end;
+        L_224:
+            invokestatic 34;
+            goto_w L_end;
+        L_240:
+            invokestatic 35;
+            goto_w L_end;
+        L_255:
+            invokestatic 36;
+            goto_w L_end;
+
+        L_error:
+            sspush 27904;
+            invokestatic 7;
+        L_end:
+            return;
+        }
+
+        // ================================================================
+        // Test methods — each declares .locals N, touches local 0
+        // max_locals is u8, so max is 255
+        // ================================================================
+
+        .method private static test_2()V {
+            .stack 1; .locals 2;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_4()V {
+            .stack 1; .locals 4;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_8()V {
+            .stack 1; .locals 8;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_16()V {
+            .stack 1; .locals 16;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_32()V {
+            .stack 1; .locals 32;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_48()V {
+            .stack 1; .locals 48;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_64()V {
+            .stack 1; .locals 64;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_80()V {
+            .stack 1; .locals 80;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_96()V {
+            .stack 1; .locals 96;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_112()V {
+            .stack 1; .locals 112;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_128()V {
+            .stack 1; .locals 128;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_144()V {
+            .stack 1; .locals 144;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_160()V {
+            .stack 1; .locals 160;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_176()V {
+            .stack 1; .locals 176;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_192()V {
+            .stack 1; .locals 192;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_200()V {
+            .stack 1; .locals 200;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_204()V {
+            .stack 1; .locals 204;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_208()V {
+            .stack 1; .locals 208;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_210()V {
+            .stack 1; .locals 210;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_212()V {
+            .stack 1; .locals 212;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_216()V {
+            .stack 1; .locals 216;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_220()V {
+            .stack 1; .locals 220;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_221()V {
+            .stack 1; .locals 221;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_222()V {
+            .stack 1; .locals 222;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_223()V {
+            .stack 1; .locals 223;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_224()V {
+            .stack 1; .locals 224;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_240()V {
+            .stack 1; .locals 240;
+            sconst_0; sstore_0; return;
+        }
+        .method private static test_255()V {
+            .stack 1; .locals 255;
+            sconst_0; sstore_0; return;
+        }
+
+    }
+}

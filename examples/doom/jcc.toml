@@ -1,35 +1,16 @@
 [package]
-name = "sh/trey/doom"
+name = "com/crystalpeak/doom"
 aid = "A0000000620300D001"
+version = "1.0"
 
 [applet]
 aid = "A0000000620300D00101"
 class = "Applet"
 
-[analysis]
-max_stack_slots = 200
+[options]
+javacard_version = "3.0.4"
 extended_apdu = true
-javacard_version = "3.0.1"
+max_stack_slots = 210
 
-[driver]
-game_name = "JCDOOM"
-screen_width = 64
-screen_height = 40
-pixel_format = "2bpp"
-target_fps = 35
-input_mode = "keyboard"
-continuous_frames = true
-gradient_border = true
-background_image = "assets/title.png"
-controls_wasd = true
-controls_wasd_qe = true
-recording_enabled = true
-daemon_enabled = true
-
-[lint]
-enabled = true
-death_pain_state = true
-
-[[lint.pattern_rules]]
-pattern = ">>\\s*ANGLETOFINESHIFT"
-message = "Use ANGLE_TO_FINE() instead (signed shift causes negative indices)"
+[build]
+command = "clang -S -emit-llvm -g -target msp430-unknown-unknown -O1 -fno-vectorize -fno-slp-vectorize -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"

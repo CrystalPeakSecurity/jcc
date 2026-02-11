@@ -5,7 +5,14 @@
 
 // Primitive types (matching JavaCard)
 typedef signed char byte;
-// short and int are built-in
+// short is built-in
+
+// 32-bit integer: int on wasm32 (int=32bit), long on msp430 (int=16bit)
+#ifdef __MSP430__
+typedef long i32;
+#else
+typedef int i32;
+#endif
 
 // APDU object type (opaque reference)
 typedef void* APDU;
@@ -90,25 +97,21 @@ typedef void* APDU;
 
 
 // APDU methods (compiler intrinsics)
-// Get the APDU buffer for reading/writing data
-// Maps to: apdu.getBuffer()
-extern byte* apduGetBuffer(APDU apdu);
+// Naming convention: jc_<ClassName>_<methodName>
+extern byte* jc_APDU_getBuffer(APDU apdu);
+extern short jc_APDU_setIncomingAndReceive(APDU apdu);
+extern short jc_APDU_setOutgoing(APDU apdu);
+extern void jc_APDU_setOutgoingLength(APDU apdu, short len);
+extern void jc_APDU_sendBytes(APDU apdu, short offset, short len);
+extern void jc_APDU_sendBytesLong(APDU apdu, byte* data, short offset, short len);
 
-// Receive incoming data and return length
-// Maps to: apdu.setIncomingAndReceive()
-extern short apduReceive(APDU apdu);
-
-// Prepare for sending response data
-// Maps to: apdu.setOutgoing()
-extern void apduSetOutgoing(APDU apdu);
-
-// Set the length of outgoing data
-// Maps to: apdu.setOutgoingLength(len)
-extern void apduSetOutgoingLength(APDU apdu, short len);
-
-// Send bytes from the APDU buffer
-// Maps to: apdu.sendBytes(offset, len)
-extern void apduSendBytes(APDU apdu, short offset, short len);
+// Convenience aliases
+#define apduGetBuffer jc_APDU_getBuffer
+#define apduReceive jc_APDU_setIncomingAndReceive
+#define apduSetOutgoing jc_APDU_setOutgoing
+#define apduSetOutgoingLength jc_APDU_setOutgoingLength
+#define apduSendBytes jc_APDU_sendBytes
+#define apduSendBytesLong jc_APDU_sendBytesLong
 
 // Convenience macro: prepare and send response from buffer start
 // Combines setOutgoing + setOutgoingLength + sendBytes(0, len)
@@ -121,19 +124,27 @@ extern void apduSendBytes(APDU apdu, short offset, short len);
 // Throw an ISOException with the given status word
 // This function never returns - it throws an exception
 // Maps to: ISOException.throwIt(sw)
-extern void throwError(short sw);
+extern void jc_ISOException_throwIt(short sw);
 
-// Memory utility functions (compiler intrinsics)
+// Convenience alias
+#define throwError jc_ISOException_throwIt
+
+// Util class methods
+extern short jc_Util_getShort(byte* arr, short offset);
+extern short jc_Util_arrayFillNonAtomic(byte* arr, short offset, short length, byte value);
+
+#define util_getshort jc_Util_getShort
+
+// Memory utility functions
 // Fill a byte array with a specific byte value (5-10x faster than C loops)
 // Maps to: Util.arrayFillNonAtomic(byte[] arr, short offset, short length, byte value)
-extern void memset_byte(byte* dest, byte value, short length);
-
-// Supports both arr and arr+offset syntax:
+#define memset_byte(dest, value, length) \
+    jc_Util_arrayFillNonAtomic((dest), 0, (length), (value))
 //   memset_byte(buffer, 0, 100);        // Fill buffer[0..99] with 0
-//   memset_byte(buffer + 10, 0xFF, 20); // Fill buffer[10..29] with 0xFF
 
-// Variant with explicit offset parameter (same underlying function)
-extern void memset_at(byte* dest, short offset, byte value, short length);
+// Variant with explicit offset parameter
+#define memset_at(dest, offset, value, length) \
+    jc_Util_arrayFillNonAtomic((dest), (offset), (length), (value))
 //   memset_at(buffer, 10, 0xFF, 20);    // Fill buffer[10..29] with 0xFF
 
 // Fill a short array with a specific short value
@@ -149,10 +160,10 @@ extern short lshr_short(short value, short amount);
 extern int lshr_int(int value, int amount);
 
 // Unsigned comparison macro for int
-// jcc has no unsigned types. XOR with 0x80000000 flips sign bit to convert
-// unsigned ordering to signed ordering.
+// Cast to unsigned so LLVM emits icmp uge/ugt predicates directly.
+// (The old XOR-with-0x80000000 trick gets optimized away by LLVM -O2.)
 // Usage: UINT_CMP(a, >=, b)
-#define UINT_CMP(a, op, b) (((a) ^ 0x80000000) op ((b) ^ 0x80000000))
+#define UINT_CMP(a, op, b) ((unsigned int)(a) op (unsigned int)(b))
 
 // Raw sushr opcode for testing (may not work on all simulators)
 extern short _raw_sushr(short value, short amount);

@@ -9,6 +9,10 @@
 static byte
     audio_buffer[AUDIO_BUFFER_SIZE]; // must be first for apduSendBytesLong
 
+// Forward declarations for cross-header references
+static byte fast_note;
+void player_advance(short samples);
+
 #include "operator.h"
 
 #define NUM_CHANNELS 2

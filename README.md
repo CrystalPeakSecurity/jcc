@@ -1,6 +1,6 @@
-# JCC - C-to-JavaCard Compiler
+# JCC - LLVM IR to JavaCard Compiler
 
-Write JavaCard applets in C. Compiles a restricted C subset to JavaCard bytecode (JCA).
+Compiles LLVM IR to JavaCard bytecode (CAP files). Any language with an LLVM frontend (C, Rust, etc.) can target JavaCard smart cards.
 
 ## Prerequisites
 
@@ -11,30 +11,26 @@ Write JavaCard applets in C. Compiles a restricted C subset to JavaCard bytecode
 ```bash
 git clone <repo>
 cd jcc
-just setup      # Install dependencies (see below for manual steps)
-just test-fast  # Verify installation
+just check      # Run type checker and tests
 ```
 
 ## Requirements
 
-- Python 3.14+ and [uv](https://docs.astral.sh/uv/)
+- Python 3.12+ and [uv](https://docs.astral.sh/uv/)
+- [LLVM/Clang](https://llvm.org/) (for compiling C to LLVM IR)
 - Java 17+
 - [Oracle JavaCard SDK](https://www.oracle.com/java/technologies/javacard-downloads.html) - extract to `etc/jcdk/`
 - [Oracle JavaCard Simulator](https://www.oracle.com/java/technologies/javacard-downloads.html) (optional) - extract to `etc/jcdk-sim/`
 
-Run `just setup` for platform-specific instructions.
-
 ## Usage
 
 ```bash
-# Compile C to JavaCard
-just compile examples/minimal/main.c
+# Build a project (compiles C → LLVM IR → CAP)
+just build examples/minimal
 
-# Test on simulator
-just run examples/minimal/main.c
-
-# Deploy to real card
-just card-install examples/minimal/main.c
+# Load onto simulator and run interactively
+just load examples/doom
+just run examples/doom
 ```
 
 ## Example
@@ -60,19 +56,22 @@ void process(APDU apdu, short len) {
 ## Examples
 
 ```bash
-just demo-sim doom        # DOOM on simulator
-just demo-sim 2048        # 2048 game
-just demo-sim flappy      # Flappy Bird
-just demo-sim synth       # Music synthesizer
-just demo-sim apple       # Bad Apple
-just demo-sim musicvideo  # A music video
+just build examples/doom        # DOOM
+just build examples/2048        # 2048 game
+just build examples/flappy      # Flappy Bird
+just build examples/synth       # Music synthesizer
+just build examples/apple       # Bad Apple
+just build examples/musicvideo  # A music video
+just build examples/wolf3d      # Wolfenstein 3D
 ```
 
 ## Project Structure
 
-- `src/jcc/` - Compiler source
+- `src/jcc/` - Compiler source (LLVM IR parser, analysis, codegen, output)
 - `examples/` - Example applets
 - `include/jcc.h` - C header with APDU functions
+- `tools/` - CAP file analysis utilities
+- `corpus/` - LLVM IR test fixtures
 - `etc/` - External tools (SDK, simulator, GlobalPlatformPro)
 
 ## License

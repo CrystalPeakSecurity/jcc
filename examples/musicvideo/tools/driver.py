@@ -35,6 +35,24 @@ class MusicVideoDriver(BaseDriver):
     def get_initial_input(self) -> bytes:
         return bytes([0])
 
+    def cmd_render(self, backend: str = None, frame: int = 0, hex_mode: bool = False) -> None:
+        """Render a single frame using INS_TICK with video+audio response."""
+        with self.get_session(backend) as session:
+            session.send(build_apdu(self.INS_RESET))
+            for i in range(frame + 1):
+                apdu = build_apdu(self.INS_TICK, ne=self.RESPONSE_SIZE)
+                data, sw = session.send(apdu)
+                if sw != 0x9000 or len(data) != self.RESPONSE_SIZE:
+                    print(f"Error at frame {i}: SW={sw:04X}", file=sys.stderr)
+                    return
+
+            video_data = data[: self.VIDEO_SIZE]
+            fb = Framebuffer(self.config.screen, video_data)
+            if hex_mode:
+                print(fb.render_hex())
+            else:
+                print(self.render_frame(fb, f"Frame {frame}"))
+
     def cmd_play(self, backend: str = None) -> None:
         try:
             from blessed import Terminal

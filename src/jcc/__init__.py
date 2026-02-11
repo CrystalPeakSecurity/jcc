@@ -1,3 +1,3 @@
-"""JCC - C-to-JavaCard bytecode compiler."""
+"""jcc: LLVM IR to JavaCard bytecode compiler."""
 
 __version__ = "0.1.0"

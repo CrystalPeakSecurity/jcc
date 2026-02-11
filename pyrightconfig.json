@@ -1,0 +1,12 @@
+{
+  "include": ["src/jcc", "tests"],
+  "exclude": ["src/jcc/driver"],
+  "typeCheckingMode": "strict",
+  "reportMissingTypeStubs": false,
+  "executionEnvironments": [
+    {
+      "root": "tests",
+      "reportPrivateUsage": false
+    }
+  ]
+}

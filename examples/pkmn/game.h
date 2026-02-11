@@ -1,5 +1,7 @@
 #pragma once
 
+byte anim_frame = 0;
+
 #include "map.h"
 #include "sprites.h"
 
@@ -32,7 +34,6 @@ byte flash_counter = 0;
 
 short rng_state = 12345;
 
-byte anim_frame = 0;
 byte anim_counter = 0;
 
 short random_short(void) {

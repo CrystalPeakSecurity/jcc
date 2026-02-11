@@ -1,16 +1,5 @@
 #!/usr/bin/env python3
-"""
-driver.py - JavaCard DOOM applet driver
-
-All card communication and response parsing goes through this file.
-
-Commands:
-    load <jar>     Load applet onto simulator
-    verify         Verify applet is loaded and responding
-    read-log       Read and consume debug log
-    test-tables    Validate trig tables against golden data
-    test-math      Validate math functions
-"""
+"""JavaCard DOOM applet driver."""
 
 import json
 import os
@@ -82,11 +71,14 @@ STRAFE_SPEED = 40 * 10 // TARGET_FPS
 
 # Log message structure types (first byte encodes size)
 # 0x01=B(1), 0x10=BB(2), 0x11=BBB(3), 0x12=BBS(4), 0x13=BBI(6), 0x20=BS(3)
-MSG_SIZES = {0x01: 1, 0x10: 2, 0x11: 3, 0x12: 4, 0x13: 6, 0x20: 3}
+MSG_SIZES = {0x01: 1, 0x10: 2, 0x11: 3, 0x12: 4, 0x13: 6, 0x20: 3, 0xF0: 4}
 
 
 def build_apdu(ins: int, p1: int = 0, p2: int = 0, data: bytes = None, ne: int = 0) -> str:
-    """Build APDU hex string with proper extended APDU support.
+    """Build APDU hex string. Always uses extended APDU format.
+
+    The applet defines APDU_DATA=7 (extended format: CLA INS P1 P2 00 Lc1 Lc2 Data),
+    so we must always use extended APDU when sending data.
 
     Args:
         ins: Instruction byte
@@ -96,41 +88,25 @@ def build_apdu(ins: int, p1: int = 0, p2: int = 0, data: bytes = None, ne: int =
 
     Returns:
         Hex string ready to send to card
-
-    Extended APDU format is used when:
-        - data length > 255 bytes (extended Lc)
-        - expected response > 256 bytes (extended Le)
     """
     # Start with header
     apdu = f"80{ins:02X}{p1:02X}{p2:02X}"
 
-    # Determine if we need extended format
     data_len = len(data) if data else 0
-    use_extended = data_len > 255 or ne > 256
 
     if data:
-        if use_extended:
-            # Extended Lc: 00 Lc1 Lc2
-            apdu += f"00{data_len:04X}"
-        else:
-            # Standard Lc: single byte
-            apdu += f"{data_len:02X}"
+        # Extended Lc: 00 Lc1 Lc2
+        apdu += f"00{data_len:04X}"
         apdu += data.hex().upper()
 
     if ne > 0:
-        if use_extended or (not data and ne > 256):
-            # Extended Le: 00 Le1 Le2 (or 00 00 00 for max)
-            # If no data was sent, we need the leading 00 to indicate extended
-            if not data and ne > 256:
-                apdu += "00"  # Extended format indicator
-            if ne >= 65536:
-                apdu += "0000"  # Request max (65536 bytes)
-            else:
-                apdu += f"{ne:04X}"
+        # Extended Le: 00 Le1 Le2
+        if not data:
+            apdu += "00"  # Extended format indicator
+        if ne >= 65536:
+            apdu += "0000"  # Request max (65536 bytes)
         else:
-            # Standard Le: single byte (00 = 256)
-            le_byte = 0 if ne == 256 else ne
-            apdu += f"{le_byte:02X}"
+            apdu += f"{ne:04X}"
 
     return apdu
 
@@ -194,12 +170,41 @@ def load_applet(jar_path: str):
         sys.exit(1)
 
 
-def cmd_load(args):
-    """Load applet."""
-    if len(args) < 1:
-        print("Usage: driver.py load <jar>", file=sys.stderr)
+def load_applet_card(cap_path: str):
+    """Load applet onto a real card via GlobalPlatformPro."""
+    gp_jar = ROOT / "etc/gp/gp.jar"
+    if not gp_jar.exists():
+        raise FileNotFoundError(f"gp.jar not found at {gp_jar}")
+    cmd = ["java", "-jar", str(gp_jar), "--force", "--install", str(cap_path)]
+    result = subprocess.run(cmd)
+    if result.returncode != 0:
         sys.exit(1)
-    load_applet(args[0])
+
+
+def unload_applet():
+    """Uninstall and unload applet from simulator."""
+    cmd = ["java", "-cp", f"{CLIENT_CP}:{CLIENT_DIR}", "JCCClient", "unload", PKG_AID, APPLET_AID]
+    result = subprocess.run(cmd, cwd=ROOT)
+    if result.returncode != 0:
+        sys.exit(1)
+
+
+def cmd_load(args):
+    """Load applet onto simulator or real card."""
+    use_card = "--card" in args or "--real-card" in args
+    jar_args = [a for a in args if a not in ("--card", "--real-card")]
+    if len(jar_args) < 1:
+        print("Usage: driver.py load [--card] <jar>", file=sys.stderr)
+        sys.exit(1)
+    if use_card:
+        load_applet_card(jar_args[0])
+    else:
+        load_applet(jar_args[0])
+
+
+def cmd_unload(args):
+    """Uninstall and unload applet from simulator."""
+    unload_applet()
 
 
 def cmd_verify(args):
@@ -268,13 +273,19 @@ def format_log_entry(entry: bytes) -> str:
                 value -= 0x10000
             return f"SUBSECTOR {value}"
 
-    elif size == 4:  # BBS - type + note + short
-        note = entry[1]
-        value = (entry[2] << 8) | entry[3]
-        if value >= 0x8000:
-            value -= 0x10000
-        name = LOG_TRACE_NAMES.get(note) or LOG_ERROR_NAMES.get(note) or f"0x{note:02X}"
-        return f"{name}: {value}"
+    elif size == 4:
+        if msg_type == 0xF0:  # BBBB - wall draw: marker + (x<<2|color) + y1 + y2
+            x = entry[1] >> 2
+            color = entry[1] & 0x03
+            y1, y2 = entry[2], entry[3]
+            return f"wall x={x} y1={y1} y2={y2} c={color}"
+        else:  # BBS - type + note + short
+            note = entry[1]
+            value = (entry[2] << 8) | entry[3]
+            if value >= 0x8000:
+                value -= 0x10000
+            name = LOG_TRACE_NAMES.get(note) or LOG_ERROR_NAMES.get(note) or f"0x{note:02X}"
+            return f"{name}: {value}"
 
     elif size == 6:  # BBI - type + note + int
         note = entry[1]
@@ -596,6 +607,15 @@ def render_ascii(data: bytes):
         print(row)
 
 
+def render_hex(data: bytes):
+    """Render framebuffer as hex digits (0-3 per pixel)."""
+    for y in range(SCREEN_HEIGHT):
+        row = ""
+        for x in range(SCREEN_WIDTH):
+            row += f"{get_pixel(data, x, y):X}"
+        print(row)
+
+
 def render_halfblock(data: bytes, grayscale: bool = False):
     """Render framebuffer using half-block characters for 2x vertical resolution.
 
@@ -640,21 +660,33 @@ def cmd_render(args):
     # Parse args
     use_halfblock = "--pretty" in args or "-p" in args
     use_grayscale = "--grayscale" in args or "-g" in args
+    use_hex = "--hex" in args
+    frame_num = 0
+    if "--frame" in args:
+        idx = args.index("--frame")
+        if idx + 1 < len(args):
+            frame_num = int(args[idx + 1])
 
     # Parse --real-card or --card flag
     if "--real-card" in args or "--card" in args:
         set_real_card_mode(True)
 
     with get_session() as session:
-        # Request a frame - 640 bytes (64x40 @ 2bpp)
-        # No Le field - applet decides response length
-        data = session.send_ok(build_apdu(INS_RENDER, ne=2560))  # FB_SIZE = 64*40
+        # Send game frames to advance to requested frame
+        for i in range(frame_num):
+            input_data = _build_input_data(0, 0, 0)
+            session.send_ok(build_apdu(INS_GAME_FRAME, data=input_data, ne=2560))
+
+        # Request render
+        data = session.send_ok(build_apdu(INS_RENDER, ne=2560))
 
         if len(data) != FRAMEBUFFER_SIZE:
             print(f"Expected {FRAMEBUFFER_SIZE} bytes, got {len(data)}", file=sys.stderr)
             sys.exit(1)
 
-        if use_halfblock:
+        if use_hex:
+            render_hex(data)
+        elif use_halfblock:
             render_halfblock(data, grayscale=use_grayscale)
         else:
             render_ascii(data)
@@ -1526,6 +1558,7 @@ def cmd_debug_gui(args):
 
 COMMANDS = {
     "load": cmd_load,
+    "unload": cmd_unload,
     "verify": cmd_verify,
     "read-log": cmd_read_log,
     "render": cmd_render,

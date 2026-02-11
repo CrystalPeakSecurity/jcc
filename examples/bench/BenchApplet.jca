@@ -1,0 +1,3602 @@
+.package com/jcc/bench {
+    .aid 0xA0:0x00:0x00:0x00:0x62:0x03:0x01:0x03;
+    .version 1.0;
+
+    .imports {
+        0xA0:0x0:0x0:0x0:0x62:0x1:0x1 1.5;		//javacard/framework
+    }
+
+    .applet {
+        0xA0:0x00:0x00:0x00:0x62:0x03:0x01:0x03:0x01 BenchApplet;
+    }
+
+    .constantPool {
+        // 0  // javacard/framework/Applet.<init>()V
+        staticMethodRef 0.3.0()V;
+        // 1  // register()V
+        virtualMethodRef 0.3.1()V;
+        // 2
+        .classRef BenchApplet;
+        // 3
+        staticMethodRef BenchApplet/<init>()V;
+        // 4  // selectingApplet()Z
+        virtualMethodRef 0.3.3()Z;
+        // 5  // setIncomingAndReceive()S
+        virtualMethodRef 0.10.6()S;
+        // 6  // getShort([BS)S
+        staticMethodRef 0.16.4([BS)S;
+        // 7  // setShort([BSS)S
+        staticMethodRef 0.16.6([BSS)S;
+        // 8  // arrayFillNonAtomic([BSSB)S
+        staticMethodRef 0.16.3([BSSB)S;
+        // 9  // arrayCopyNonAtomic([BS[BSS)S
+        staticMethodRef 0.16.2([BS[BSS)S;
+        // 10  // MEM_B
+        staticFieldRef byte[] BenchApplet/MEM_B;
+        // 11  // makeTransientByteArray(SB)[B
+        staticMethodRef 0.8.13(SB)[B;
+        // 12  // MEM_S
+        staticFieldRef short[] BenchApplet/MEM_S;
+        // 13  // makeTransientShortArray(SB)[S
+        staticMethodRef 0.8.15(SB)[S;
+        // 14  // getBuffer()[B
+        virtualMethodRef 0.10.1()[B;
+        // 15  // setOutgoing()S
+        virtualMethodRef 0.10.7()S;
+        // 16  // setOutgoingLength(S)V
+        virtualMethodRef 0.10.9(S)V;
+        // 17  // sendBytes(SS)V
+        virtualMethodRef 0.10.4(SS)V;
+        // 18  // throwIt(S)V
+        staticMethodRef 0.7.1(S)V;
+
+        // --- Benchmark method refs (19..50) ---
+        // Constants
+        // 19  bench_nop (INS 0x00) — NOP baseline
+        staticMethodRef BenchApplet/bench_nop()B;
+        // 20  bench_sconst (INS 0x04)
+        staticMethodRef BenchApplet/bench_sconst()B;
+        // 21  bench_bspush (INS 0x01)
+        staticMethodRef BenchApplet/bench_bspush()B;
+        // 22  bench_sspush (INS 0x02)
+        staticMethodRef BenchApplet/bench_sspush()B;
+
+        // Local variable access
+        // 23  bench_sload (INS 0x10)
+        staticMethodRef BenchApplet/bench_sload()B;
+        // 24  bench_sstore_sload (INS 0x11)
+        staticMethodRef BenchApplet/bench_sstore_sload()B;
+        // 25  bench_iload_i2s (INS 0x12)
+        staticMethodRef BenchApplet/bench_iload_i2s()B;
+        // 26  bench_istore_iload (INS 0x13)
+        staticMethodRef BenchApplet/bench_istore_iload()B;
+        // 27  bench_sinc_sload (INS 0x14)
+        staticMethodRef BenchApplet/bench_sinc_sload()B;
+
+        // Short arithmetic
+        // 28  bench_sadd (INS 0x20)
+        staticMethodRef BenchApplet/bench_sadd()B;
+        // 29  bench_ssub (INS 0x21)
+        staticMethodRef BenchApplet/bench_ssub()B;
+        // 30  bench_smul (INS 0x22)
+        staticMethodRef BenchApplet/bench_smul()B;
+        // 31  bench_sdiv (INS 0x23)
+        staticMethodRef BenchApplet/bench_sdiv()B;
+        // 32  bench_srem (INS 0x24)
+        staticMethodRef BenchApplet/bench_srem()B;
+        // 33  bench_sneg (INS 0x25)
+        staticMethodRef BenchApplet/bench_sneg()B;
+        // 34  bench_sand (INS 0x26)
+        staticMethodRef BenchApplet/bench_sand()B;
+        // 35  bench_sor (INS 0x27)
+        staticMethodRef BenchApplet/bench_sor()B;
+        // 36  bench_sxor (INS 0x28)
+        staticMethodRef BenchApplet/bench_sxor()B;
+        // 37  bench_sshl (INS 0x29)
+        staticMethodRef BenchApplet/bench_sshl()B;
+        // 38  bench_sshr (INS 0x2A)
+        staticMethodRef BenchApplet/bench_sshr()B;
+        // 39  bench_sushr (INS 0x2B)
+        staticMethodRef BenchApplet/bench_sushr()B;
+
+        // Type conversions & stack ops
+        // 40  bench_s2b (INS 0x30)
+        staticMethodRef BenchApplet/bench_s2b()B;
+        // 41  bench_s2i_i2s (INS 0x31)
+        staticMethodRef BenchApplet/bench_s2i_i2s()B;
+        // 42  bench_dup (INS 0x32)
+        staticMethodRef BenchApplet/bench_dup()B;
+        // 43  bench_pop (INS 0x33)
+        staticMethodRef BenchApplet/bench_pop()B;
+        // 44  bench_if_scmplt (INS 0x34)
+        staticMethodRef BenchApplet/bench_if_scmplt()B;
+        // 45  bench_ifeq (INS 0x35)
+        staticMethodRef BenchApplet/bench_ifeq()B;
+
+        // Global array access
+        // 46  bench_baload (INS 0x40)
+        staticMethodRef BenchApplet/bench_baload()B;
+        // 47  bench_saload (INS 0x41)
+        staticMethodRef BenchApplet/bench_saload()B;
+        // 48  bench_ba_roundtrip (INS 0x42)
+        staticMethodRef BenchApplet/bench_ba_roundtrip()B;
+        // 49  bench_sa_roundtrip (INS 0x43)
+        staticMethodRef BenchApplet/bench_sa_roundtrip()B;
+
+        // Method invocation
+        // 50  bench_invokestatic (INS 0x50)
+        staticMethodRef BenchApplet/bench_invokestatic()B;
+
+        // Int arithmetic
+        // 51  bench_iadd (INS 0x60)
+        staticMethodRef BenchApplet/bench_iadd()B;
+        // 52  bench_isub (INS 0x61)
+        staticMethodRef BenchApplet/bench_isub()B;
+        // 53  bench_imul (INS 0x62)
+        staticMethodRef BenchApplet/bench_imul()B;
+        // 54  bench_idiv (INS 0x63)
+        staticMethodRef BenchApplet/bench_idiv()B;
+        // 55  bench_irem (INS 0x64)
+        staticMethodRef BenchApplet/bench_irem()B;
+        // 56  bench_ineg (INS 0x65)
+        staticMethodRef BenchApplet/bench_ineg()B;
+        // 57  bench_iand (INS 0x66)
+        staticMethodRef BenchApplet/bench_iand()B;
+        // 58  bench_ior (INS 0x67)
+        staticMethodRef BenchApplet/bench_ior()B;
+        // 59  bench_ixor (INS 0x68)
+        staticMethodRef BenchApplet/bench_ixor()B;
+        // 60  bench_ishl (INS 0x69)
+        staticMethodRef BenchApplet/bench_ishl()B;
+        // 61  bench_ishr (INS 0x6A)
+        staticMethodRef BenchApplet/bench_ishr()B;
+        // 62  bench_iushr (INS 0x6B)
+        staticMethodRef BenchApplet/bench_iushr()B;
+
+        // 63  bench_getstatic_a (INS 0x44)
+        staticMethodRef BenchApplet/bench_getstatic_a()B;
+        // 64  bench_invoke_void (INS 0x51)
+        staticMethodRef BenchApplet/bench_invoke_void()B;
+
+        // 65  bench_empty helper
+        staticMethodRef BenchApplet/bench_empty()B;
+        // 66  bench_empty_void helper
+        staticMethodRef BenchApplet/bench_empty_void()V;
+
+        // --- New benchmark method refs (67..82) ---
+        // Int constants
+        // 67  bench_iconst (INS 0x70)
+        staticMethodRef BenchApplet/bench_iconst()B;
+        // 68  bench_bipush_int (INS 0x71)
+        staticMethodRef BenchApplet/bench_bipush_int()B;
+        // 69  bench_sipush_int (INS 0x72)
+        staticMethodRef BenchApplet/bench_sipush_int()B;
+        // 70  bench_iipush (INS 0x73)
+        staticMethodRef BenchApplet/bench_iipush()B;
+
+        // More conversions / comparison
+        // 71  bench_i2b (INS 0x74)
+        staticMethodRef BenchApplet/bench_i2b()B;
+        // 72  bench_icmp (INS 0x75)
+        staticMethodRef BenchApplet/bench_icmp()B;
+
+        // Int locals
+        // 73  bench_iinc (INS 0x76)
+        staticMethodRef BenchApplet/bench_iinc()B;
+
+        // Stack
+        // 74  bench_pop2 (INS 0x77)
+        staticMethodRef BenchApplet/bench_pop2()B;
+
+        // More branches
+        // 75  bench_ifne (INS 0x78)
+        staticMethodRef BenchApplet/bench_ifne()B;
+        // 76  bench_if_scmpeq (INS 0x79)
+        staticMethodRef BenchApplet/bench_if_scmpeq()B;
+
+        // Reference locals
+        // 77  bench_aload (INS 0x7A)
+        staticMethodRef BenchApplet/bench_aload()B;
+
+        // Control flow
+        // 78  bench_goto_w (INS 0x7B)
+        staticMethodRef BenchApplet/bench_goto_w()B;
+
+        // More invocation
+        // 79  bench_ireturn (INS 0x7C)
+        staticMethodRef BenchApplet/bench_ireturn()B;
+        // 80  bench_pop2_baseline (INS 0x7D)
+        staticMethodRef BenchApplet/bench_pop2_baseline()B;
+
+        // Switch
+        // 81  bench_slookupswitch (INS 0x7E)
+        staticMethodRef BenchApplet/bench_slookupswitch()B;
+        // 82  bench_stableswitch (INS 0x7F)
+        staticMethodRef BenchApplet/bench_stableswitch()B;
+
+        // 83  bench_loop (empty-body baseline)
+        staticMethodRef BenchApplet/bench_loop()B;
+
+        // 84  bench_iret_helper (returns int)
+        staticMethodRef BenchApplet/bench_iret_helper()I;
+
+        // --- Exception calibration benchmarks (85..88) ---
+        // 85  bench_exc_baseline
+        staticMethodRef BenchApplet/bench_exc_baseline()B;
+        // 86  bench_exc_sconst
+        staticMethodRef BenchApplet/bench_exc_sconst()B;
+        // 87  bench_exc_iconst
+        staticMethodRef BenchApplet/bench_exc_iconst()B;
+        // 88  bench_exc_sload
+        staticMethodRef BenchApplet/bench_exc_sload()B;
+
+        // 89  userProcess
+        staticMethodRef BenchApplet/userProcess(Ljavacard/framework/APDU;S)V;
+        // 90  _jcsl_method_cap_fix
+        staticMethodRef BenchApplet/_jcsl_method_cap_fix()V;
+
+        // 91  bench_int_baseline (2 push, 2 pop int baseline)
+        staticMethodRef BenchApplet/bench_int_baseline()B;
+        // 92  bench_arr_baseline (array access baseline)
+        staticMethodRef BenchApplet/bench_arr_baseline()B;
+
+        // --- Instance field benchmarks ---
+        // 93  SELF static field (holds applet ref for instance method dispatch)
+        staticFieldRef BenchApplet BenchApplet/SELF;
+        // 94  INST_MEM_S instance field ref
+        instanceFieldRef short[] BenchApplet/INST_MEM_S;
+        // 95  bench_getfield_a_this (virtual method)
+        virtualMethodRef BenchApplet/bench_getfield_a_this()B;
+
+        // --- Array store + baseline benchmarks ---
+        // 96  bench_bastore
+        staticMethodRef BenchApplet/bench_bastore()B;
+        // 97  bench_sastore
+        staticMethodRef BenchApplet/bench_sastore()B;
+        // 98  bench_arr_baseline2
+        staticMethodRef BenchApplet/bench_arr_baseline2()B;
+
+        // --- EEPROM array benchmarks ---
+        // 99  EEPROM_B static field
+        staticFieldRef byte[] BenchApplet/EEPROM_B;
+        // 100  bench_eeprom_baload
+        staticMethodRef BenchApplet/bench_eeprom_baload()B;
+        // 101  bench_eeprom_bastore
+        staticMethodRef BenchApplet/bench_eeprom_bastore()B;
+
+        // --- Linear array access benchmarks (index = loop counter) ---
+        // 102  bench_linear_baseline
+        staticMethodRef BenchApplet/bench_linear_baseline()B;
+        // 103  bench_ram_linear_read
+        staticMethodRef BenchApplet/bench_ram_linear_read()B;
+        // 104  bench_eeprom_linear_read
+        staticMethodRef BenchApplet/bench_eeprom_linear_read()B;
+        // 105  bench_ram_linear_write
+        staticMethodRef BenchApplet/bench_ram_linear_write()B;
+        // 106  bench_eeprom_linear_write
+        staticMethodRef BenchApplet/bench_eeprom_linear_write()B;
+
+        // --- Direct static field benchmarks ---
+        // 107  SCALAR_B field ref
+        staticFieldRef byte BenchApplet/SCALAR_B;
+        // 108  SCALAR_S field ref
+        staticFieldRef short BenchApplet/SCALAR_S;
+        // 109  bench_getstatic_b
+        staticMethodRef BenchApplet/bench_getstatic_b()B;
+        // 110  bench_putstatic_b
+        staticMethodRef BenchApplet/bench_putstatic_b()B;
+        // 111  bench_getstatic_s
+        staticMethodRef BenchApplet/bench_getstatic_s()B;
+        // 112  bench_putstatic_s
+        staticMethodRef BenchApplet/bench_putstatic_s()B;
+    }
+
+    .class public BenchApplet 0 extends 0.3 {		// extends javacard/framework/Applet
+        .fields {
+            private static byte[] MEM_B;
+            private static short[] MEM_S;
+            private static BenchApplet SELF;
+            private static byte[] EEPROM_B;
+            private static byte SCALAR_B;
+            private static short SCALAR_S;
+            private short[] INST_MEM_S 0;
+        }
+
+        .publicMethodTable 7 {
+            equals(Ljava/lang/Object;)Z;
+            register()V;
+            register([BSB)V;
+            selectingApplet()Z;
+            deselect()V;
+            getShareableInterfaceObject(Ljavacard/framework/AID;B)Ljavacard/framework/Shareable;;
+            select()Z;
+            process(Ljavacard/framework/APDU;)V;
+            bench_getfield_a_this()B;
+        }
+
+        .packageMethodTable 0 { }
+
+        .method protected <init>()V 0 {
+            .stack 4;
+            .locals 1;
+
+            aload_0;
+            invokespecial 0;
+            sspush 1000;
+            sconst_1;
+            invokestatic 11;
+            putstatic_a 10;
+            bspush 17;
+            sconst_1;
+            invokestatic 13;
+            putstatic_a 12;
+            // EEPROM-backed byte array (persistent, slow writes)
+            sspush 1000;
+            newarray 11;
+            putstatic_a 99;
+            // Store 'this' in SELF for instance method dispatch
+            aload_0;
+            putstatic_a 93;
+            // Copy MEM_S ref to instance field INST_MEM_S
+            aload_0;
+            getstatic_a 12;
+            putfield_a 94;
+            aload_0;
+            invokevirtual 1;
+            return;
+        }
+
+        .method public static install([BSB)V 1 {
+            .stack 4;
+            .locals 3;
+
+            new 2;
+            dup;
+            invokespecial 3;
+            pop;
+            return;
+        }
+
+        .method public process(Ljavacard/framework/APDU;)V 7 {
+            .stack 4;
+            .locals 2;
+
+            .descriptor	Ljavacard/framework/APDU;	0.10;
+
+            aload_0;
+            invokevirtual 4;
+            ifne L_return;
+            aload_1;
+            invokevirtual 5;
+            aload_1;
+            swap_x 17;
+            invokestatic 89;
+        L_return:
+            return;
+        }
+
+        // ================================================================
+        // HAND-WRITTEN BENCHMARK METHODS — NOP BASELINE
+        //
+        // All methods use identical loop structure:
+        //   slot 0 = i (loop counter)
+        //   slot 1 = r (accumulator)
+        //   slot 2 = g_iters (cached from MEM_S[0])
+        //
+        // Setup:  load g_iters, init i=0, r=0, goto test
+        // Body:   <stack-neutral body> -> sinc 1 1 -> sinc 0 1
+        // Test:   if i < g_iters goto body
+        // Return: (byte)r
+        //
+        // Loop overhead per iteration: 5 insns
+        //   sinc 1 1; sinc 0 1; sload_0; sload_2; if_scmplt
+        // ================================================================
+
+        // ----------------------------------------------------------------
+        // CONSTANTS (INS 0x00-0x04)
+        // ----------------------------------------------------------------
+
+        // NOP: baseline. Body = nop (1 insn, stack-neutral)
+        .method private static bench_nop()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            nop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SCONST: Body = sconst_5; pop (2 insns, stack-neutral)
+        .method private static bench_sconst()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // BSPUSH: Body = bspush 5; pop (2 insns)
+        .method private static bench_bspush()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            bspush 5;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SSPUSH: Body = sspush 5; pop (2 insns)
+        .method private static bench_sspush()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sspush 5;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // LOCAL VARIABLE ACCESS (INS 0x10-0x14)
+        // ----------------------------------------------------------------
+
+        // SLOAD: Body = sload_3; pop (2 insns). Pre-init slot 3=1.
+        .method private static bench_sload()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_1;
+            sstore_3;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sload_3;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SSTORE+SLOAD: Body = sconst_5; sstore_3; sload_3; pop (4 insns)
+        .method private static bench_sstore_sload()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sstore_3;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ILOAD+POP2: Body = iload 3; pop2 (2 insns). Pre-init int slot 3=1.
+        .method private static bench_iload_i2s()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_1;
+            s2i;
+            istore 3;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iload 3;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ISTORE+ILOAD: Body = iconst_5; istore 3; iload 3; pop2 (4 insns)
+        .method private static bench_istore_iload()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            istore 3;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SINC+SLOAD: Body = sinc 3 1; sload_3; pop (3 insns). Pre-init slot 3=0.
+        .method private static bench_sinc_sload()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_3;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sinc 3 1;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // SHORT ARITHMETIC (INS 0x20-0x2B)
+        // All use sconst; sconst; <op>; pop pattern (4 insns body)
+        // except sneg which uses sconst; sneg; pop (3 insns body)
+        // ----------------------------------------------------------------
+
+        // SADD: Body = sconst_5; sconst_3; sadd; pop
+        .method private static bench_sadd()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sadd;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SSUB: Body = sconst_5; sconst_3; ssub; pop
+        .method private static bench_ssub()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            ssub;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SMUL: Body = sconst_5; sconst_3; smul; pop
+        .method private static bench_smul()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            smul;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SDIV: Body = sconst_5; sconst_3; sdiv; pop
+        .method private static bench_sdiv()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sdiv;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SREM: Body = sconst_5; sconst_3; srem; pop
+        .method private static bench_srem()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            srem;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SNEG: Body = sconst_5; sneg; pop (3 insns)
+        .method private static bench_sneg()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sneg;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SAND: Body = sconst_5; sconst_3; sand; pop
+        .method private static bench_sand()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sand;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SOR: Body = sconst_5; sconst_3; sor; pop
+        .method private static bench_sor()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sor;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SXOR: Body = sconst_5; sconst_3; sxor; pop
+        .method private static bench_sxor()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sxor;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SSHL: Body = sconst_5; sconst_3; sshl; pop
+        .method private static bench_sshl()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sshl;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SSHR: Body = sconst_5; sconst_3; sshr; pop
+        .method private static bench_sshr()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sshr;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SUSHR: Body = sconst_5; sconst_3; sushr; pop
+        .method private static bench_sushr()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            sushr;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // TYPE CONVERSIONS & STACK OPS (INS 0x30-0x35)
+        // ----------------------------------------------------------------
+
+        // S2B: Body = sconst_5; s2b; pop (3 insns)
+        .method private static bench_s2b()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            s2b;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // I2S: Body = iconst_5; i2s; pop (3 insns)
+        .method private static bench_s2i_i2s()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            i2s;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // DUP: Body = sconst_5; dup; pop; pop (4 insns, stack-neutral)
+        .method private static bench_dup()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            dup;
+            pop;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // POP: Body = sconst_5; sconst_3; pop; pop (4 insns, stack-neutral)
+        .method private static bench_pop()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            pop;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IF_SCMPLT: Body = sconst_3; sconst_5; if_scmplt L; L: (3 insns, stack-neutral)
+        // Branch always taken (3 < 5)
+        .method private static bench_if_scmplt()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_3;
+            sconst_5;
+            if_scmplt L_taken;
+        L_taken:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IFEQ: Body = sconst_5; ifeq L; L: (2 insns, stack-neutral)
+        // Branch not taken (5 != 0), falls through to L
+        .method private static bench_ifeq()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            ifeq L_taken;
+        L_taken:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // GLOBAL ARRAY ACCESS (INS 0x40-0x43)
+        // ----------------------------------------------------------------
+
+        // BALOAD: Body = getstatic_a 10; sconst_0; baload; pop (4 insns)
+        .method private static bench_baload()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            sconst_0;
+            baload;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SALOAD: Body = getstatic_a 12; sconst_1; saload; pop (4 insns)
+        .method private static bench_saload()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 12;
+            sconst_1;
+            saload;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // BA_ROUNDTRIP: Body = gsa; 0; 5; bastore; gsa; 0; baload; pop (8 insns)
+        .method private static bench_ba_roundtrip()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            sconst_0;
+            sconst_5;
+            bastore;
+            getstatic_a 10;
+            sconst_0;
+            baload;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SA_ROUNDTRIP: Body = gsa; 1; 5; sastore; gsa; 1; saload; pop (8 insns)
+        .method private static bench_sa_roundtrip()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 12;
+            sconst_1;
+            sconst_5;
+            sastore;
+            getstatic_a 12;
+            sconst_1;
+            saload;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // METHOD INVOCATION (INS 0x50-0x51)
+        // ----------------------------------------------------------------
+
+        // INVOKESTATIC: Body = invokestatic bench_empty; pop (2 insns)
+        // bench_empty does sconst_1; sreturn
+        .method private static bench_invokestatic()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            invokestatic 65;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // INT ARITHMETIC (INS 0x60-0x6B)
+        // Binary ops use sconst; s2i; sconst; s2i; <iop>; pop2 (6 insns)
+        // ineg uses sconst; s2i; ineg; pop2 (4 insns)
+        // ----------------------------------------------------------------
+
+        // IADD: Body = iconst_5; iconst_3; iadd; pop2
+        .method private static bench_iadd()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            iadd;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ISUB: Body = iconst_5; iconst_3; isub; pop2
+        .method private static bench_isub()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            isub;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IMUL: Body = iconst_5; iconst_3; imul; pop2
+        .method private static bench_imul()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            imul;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IDIV: Body = iconst_5; iconst_3; idiv; pop2
+        .method private static bench_idiv()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            idiv;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IREM: Body = iconst_5; iconst_3; irem; pop2
+        .method private static bench_irem()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            irem;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // INEG: Body = iconst_5; ineg; pop2 (3 insns)
+        .method private static bench_ineg()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            ineg;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IAND: Body = iconst_5; iconst_3; iand; pop2
+        .method private static bench_iand()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            iand;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IOR: Body = iconst_5; iconst_3; ior; pop2
+        .method private static bench_ior()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            ior;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IXOR: Body = iconst_5; iconst_3; ixor; pop2
+        .method private static bench_ixor()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            ixor;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ISHL: Body = iconst_5; iconst_3; ishl; pop2
+        .method private static bench_ishl()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            ishl;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ISHR: Body = iconst_5; iconst_3; ishr; pop2
+        .method private static bench_ishr()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            ishr;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IUSHR: Body = iconst_5; iconst_3; iushr; pop2
+        .method private static bench_iushr()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            iushr;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // ISOLATION BENCHMARKS (INS 0x44, 0x51)
+        // ----------------------------------------------------------------
+
+        // GETSTATIC_A: Body = getstatic_a 10; pop (2 insns, stack-neutral)
+        .method private static bench_getstatic_a()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // INVOKE_VOID: Body = invokestatic bench_empty_void (1 insn, stack-neutral)
+        // bench_empty_void does just `return` (void).
+        .method private static bench_invoke_void()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            invokestatic 66;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // Helper: bench_empty()B - minimal static method for invocation benchmark
+        .method private static bench_empty()B {
+            .stack 1;
+            .locals 0;
+
+            sconst_1;
+            sreturn;
+        }
+
+        // Helper: bench_empty_void()V - void method for invocation isolation
+        .method private static bench_empty_void()V {
+            .stack 0;
+            .locals 0;
+
+            return;
+        }
+
+        // ----------------------------------------------------------------
+        // INT CONSTANTS (INS 0x70-0x73)
+        // ----------------------------------------------------------------
+
+        // ICONST: Body = iconst_5; pop2 (2 insns)
+        .method private static bench_iconst()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // BIPUSH (int): Body = bipush 5; pop2 (2 insns)
+        .method private static bench_bipush_int()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            bipush 5;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SIPUSH (int): Body = sipush 5; pop2 (2 insns)
+        .method private static bench_sipush_int()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sipush 5;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IIPUSH: Body = iipush 5; pop2 (2 insns)
+        .method private static bench_iipush()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iipush 5;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // MORE CONVERSIONS / COMPARISON (INS 0x74-0x75)
+        // ----------------------------------------------------------------
+
+        // I2B: Body = iconst_5; i2b; pop (3 insns)
+        .method private static bench_i2b()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            i2b;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ICMP: Body = iconst_5; iconst_3; icmp; pop (4 insns)
+        .method private static bench_icmp()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            icmp;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // INT LOCALS (INS 0x76)
+        // ----------------------------------------------------------------
+
+        // IINC: Body = iinc 3 1; iload 3; pop2 (3 insns)
+        // Pre-init: int slot 3 = 1
+        .method private static bench_iinc()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_1;
+            s2i;
+            istore 3;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iinc 3 1;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // STACK (INS 0x77)
+        // ----------------------------------------------------------------
+
+        // POP2: Body = iconst_5; pop2 (2 insns, stack-neutral)
+        .method private static bench_pop2()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // MORE BRANCHES (INS 0x78-0x79)
+        // ----------------------------------------------------------------
+
+        // IFNE: Body = sconst_5; ifne L; L: (2 insns, stack-neutral, always taken)
+        .method private static bench_ifne()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            ifne L_ifne_end;
+        L_ifne_end:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // IF_SCMPEQ: Body = sconst_5; sconst_5; if_scmpeq L; L: (3 insns, stack-neutral, always taken)
+        .method private static bench_if_scmpeq()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_5;
+            if_scmpeq L_scmpeq_end;
+        L_scmpeq_end:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // REFERENCE LOCALS (INS 0x7A)
+        // ----------------------------------------------------------------
+
+        // ALOAD: Body = aload_3; pop (2 insns, stack-neutral)
+        // Pre-init: slot 3 = getstatic_a MEM_B reference
+        .method private static bench_aload()B {
+            .stack 4;
+            .locals 4;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            getstatic_a 10;
+            astore_3;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            aload_3;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // CONTROL FLOW (INS 0x7B)
+        // ----------------------------------------------------------------
+
+        // GOTO_W: Body = goto_w L; L: (1 insn, stack-neutral)
+        .method private static bench_goto_w()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            goto_w L_goto_end;
+        L_goto_end:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // MORE INVOCATION (INS 0x7C-0x7D)
+        // ----------------------------------------------------------------
+
+        // IRETURN: Body = invokestatic bench_iret_helper; pop2 (2 insns)
+        // bench_iret_helper does iconst_1; ireturn
+        .method private static bench_ireturn()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            invokestatic 84;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // POP2_BASELINE: Body = sconst_5; sconst_3; pop2 (3 insns, 2 push 1 pop2)
+        .method private static bench_pop2_baseline()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            sconst_3;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // SWITCH (INS 0x7E-0x7F)
+        // ----------------------------------------------------------------
+
+        // SLOOKUPSWITCH: Body = sconst_1; slookupswitch {1->L}; L: (2 insns, stack-neutral)
+        .method private static bench_slookupswitch()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_1;
+            slookupswitch L_sw_end 1 1 L_sw_end;
+        L_sw_end:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // STABLESWITCH: Body = sconst_0; stableswitch {0->L,1->L}; L: (2 insns, stack-neutral)
+        .method private static bench_stableswitch()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_0;
+            stableswitch L_ts_end 0 1 L_ts_end L_ts_end;
+        L_ts_end:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // LOOP: Empty body baseline (0 insns, just loop overhead)
+        .method private static bench_loop()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ----------------------------------------------------------------
+        // EXCEPTION CALIBRATION (INS 0x4F-0x52)
+        // These use aconst_null; athrow to trigger NPE, caught by handler.
+        // Differential from baseline isolates individual instruction costs.
+        // ----------------------------------------------------------------
+
+        // EXC_BASELINE: Body = aconst_null; athrow (exception overhead only)
+        .method private static bench_exc_baseline()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            aconst_null;
+            athrow;
+        L_handler:
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+
+            .exceptionTable {
+                L_body L_handler L_handler 0;
+            }
+        }
+
+        // EXC_SCONST: Body = sconst_5; aconst_null; athrow
+        .method private static bench_exc_sconst()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            aconst_null;
+            athrow;
+        L_handler:
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+
+            .exceptionTable {
+                L_body L_handler L_handler 0;
+            }
+        }
+
+        // EXC_ICONST: Body = iconst_5; aconst_null; athrow
+        .method private static bench_exc_iconst()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            aconst_null;
+            athrow;
+        L_handler:
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+
+            .exceptionTable {
+                L_body L_handler L_handler 0;
+            }
+        }
+
+        // EXC_SLOAD: Body = sload_3; aconst_null; athrow
+        // (slot 3 is unused but valid — initialized to 0 by default)
+        .method private static bench_exc_sload()B {
+            .stack 4;
+            .locals 5;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sload_3;
+            aconst_null;
+            athrow;
+        L_handler:
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+
+            .exceptionTable {
+                L_body L_handler L_handler 0;
+            }
+        }
+
+        // Helper: bench_iret_helper()I - returns int for ireturn benchmark
+        .method private static bench_iret_helper()I {
+            .stack 2;
+            .locals 0;
+
+            iconst_1;
+            ireturn;
+        }
+
+        // ================================================================
+        // DISPATCH
+        // slots: 0=apdu, 1=apdu_len, 2=buffer, 3=ins, 4=g_iters
+        // ================================================================
+        .method private static userProcess(Ljavacard/framework/APDU;S)V {
+            .stack 5;
+            .locals 5;
+
+            .descriptor	Ljavacard/framework/APDU;	0.10;
+
+        L2:
+            aload_0;
+            invokevirtual 14;
+            astore_2;
+            aload_2;
+            sconst_1;
+            baload;
+            sstore_3;
+            sload_1;
+            sconst_2;
+            if_scmpge L_parse;
+            sspush 1000;
+            sstore 4;
+            goto L_clamp;
+        L_parse:
+            aload_2;
+            sconst_5;
+            baload;
+            sspush 255;
+            sand;
+            bspush 8;
+            sshl;
+            aload_2;
+            bspush 6;
+            baload;
+            sspush 255;
+            sand;
+            sor;
+            sstore 4;
+        L_clamp:
+            sload 4;
+            sconst_1;
+            if_scmpge L_min_ok;
+            sconst_1;
+            sstore 4;
+        L_min_ok:
+            sload 4;
+            sspush 10000;
+            if_scmple L_max_ok;
+            sspush 10000;
+            sstore 4;
+        L_max_ok:
+            getstatic_a 12;
+            sconst_0;
+            sload 4;
+            sastore;
+            sload_3;
+            // INS = 0x10 + index; cases 16..85 contiguous (70 benchmarks)
+            stableswitch L_error 16 100 L_c0 L_c1 L_c2 L_c3 L_c4 L_c5 L_c6 L_c7 L_c8 L_c9 L_c10 L_c11 L_c12 L_c13 L_c14 L_c15 L_c16 L_c17 L_c18 L_c19 L_c20 L_c21 L_c22 L_c23 L_c24 L_c25 L_c26 L_c27 L_c28 L_c29 L_c30 L_c31 L_c32 L_c33 L_c34 L_c35 L_c36 L_c37 L_c38 L_c39 L_c40 L_c41 L_c42 L_c43 L_c44 L_c45 L_c46 L_c47 L_c48 L_c49 L_c50 L_c51 L_c52 L_c53 L_c54 L_c55 L_c56 L_c57 L_c58 L_c59 L_c60 L_c61 L_c62 L_c63 L_c64 L_c65 L_c66 L_c67 L_c68 L_c69 L_c70 L_c71 L_c72 L_c73 L_c74 L_c75 L_c76 L_c77 L_c78 L_c79 L_c80 L_c81 L_c82 L_c83 L_c84;
+        L_c0:   // 0: nop
+            aload_2;
+            sconst_0;
+            invokestatic 19;
+            bastore;
+            goto_w L_send;
+        L_c1:   // 1: sconst
+            aload_2;
+            sconst_0;
+            invokestatic 20;
+            bastore;
+            goto_w L_send;
+        L_c2:   // 2: bspush
+            aload_2;
+            sconst_0;
+            invokestatic 21;
+            bastore;
+            goto_w L_send;
+        L_c3:   // 3: sspush
+            aload_2;
+            sconst_0;
+            invokestatic 22;
+            bastore;
+            goto_w L_send;
+        L_c4:   // 4: sload
+            aload_2;
+            sconst_0;
+            invokestatic 23;
+            bastore;
+            goto_w L_send;
+        L_c5:   // 5: sstore_sload
+            aload_2;
+            sconst_0;
+            invokestatic 24;
+            bastore;
+            goto_w L_send;
+        L_c6:   // 6: iload_i2s
+            aload_2;
+            sconst_0;
+            invokestatic 25;
+            bastore;
+            goto_w L_send;
+        L_c7:   // 7: istore_iload
+            aload_2;
+            sconst_0;
+            invokestatic 26;
+            bastore;
+            goto_w L_send;
+        L_c8:   // 8: sinc_sload
+            aload_2;
+            sconst_0;
+            invokestatic 27;
+            bastore;
+            goto_w L_send;
+        L_c9:   // 9: sadd
+            aload_2;
+            sconst_0;
+            invokestatic 28;
+            bastore;
+            goto_w L_send;
+        L_c10:  // 10: ssub
+            aload_2;
+            sconst_0;
+            invokestatic 29;
+            bastore;
+            goto_w L_send;
+        L_c11:  // 11: smul
+            aload_2;
+            sconst_0;
+            invokestatic 30;
+            bastore;
+            goto_w L_send;
+        L_c12:  // 12: sdiv
+            aload_2;
+            sconst_0;
+            invokestatic 31;
+            bastore;
+            goto_w L_send;
+        L_c13:  // 13: srem
+            aload_2;
+            sconst_0;
+            invokestatic 32;
+            bastore;
+            goto_w L_send;
+        L_c14:  // 14: sneg
+            aload_2;
+            sconst_0;
+            invokestatic 33;
+            bastore;
+            goto_w L_send;
+        L_c15:  // 15: sand
+            aload_2;
+            sconst_0;
+            invokestatic 34;
+            bastore;
+            goto_w L_send;
+        L_c16:  // 16: sor
+            aload_2;
+            sconst_0;
+            invokestatic 35;
+            bastore;
+            goto_w L_send;
+        L_c17:  // 17: sxor
+            aload_2;
+            sconst_0;
+            invokestatic 36;
+            bastore;
+            goto_w L_send;
+        L_c18:  // 18: sshl
+            aload_2;
+            sconst_0;
+            invokestatic 37;
+            bastore;
+            goto_w L_send;
+        L_c19:  // 19: sshr
+            aload_2;
+            sconst_0;
+            invokestatic 38;
+            bastore;
+            goto_w L_send;
+        L_c20:  // 20: sushr
+            aload_2;
+            sconst_0;
+            invokestatic 39;
+            bastore;
+            goto_w L_send;
+        L_c21:  // 21: s2b
+            aload_2;
+            sconst_0;
+            invokestatic 40;
+            bastore;
+            goto_w L_send;
+        L_c22:  // 22: s2i_i2s
+            aload_2;
+            sconst_0;
+            invokestatic 41;
+            bastore;
+            goto_w L_send;
+        L_c23:  // 23: dup
+            aload_2;
+            sconst_0;
+            invokestatic 42;
+            bastore;
+            goto_w L_send;
+        L_c24:  // 24: pop
+            aload_2;
+            sconst_0;
+            invokestatic 43;
+            bastore;
+            goto_w L_send;
+        L_c25:  // 25: if_scmplt
+            aload_2;
+            sconst_0;
+            invokestatic 44;
+            bastore;
+            goto_w L_send;
+        L_c26:  // 26: ifeq
+            aload_2;
+            sconst_0;
+            invokestatic 45;
+            bastore;
+            goto_w L_send;
+        L_c27:  // 27: baload
+            aload_2;
+            sconst_0;
+            invokestatic 46;
+            bastore;
+            goto_w L_send;
+        L_c28:  // 28: saload
+            aload_2;
+            sconst_0;
+            invokestatic 47;
+            bastore;
+            goto_w L_send;
+        L_c29:  // 29: ba_roundtrip
+            aload_2;
+            sconst_0;
+            invokestatic 48;
+            bastore;
+            goto_w L_send;
+        L_c30:  // 30: sa_roundtrip
+            aload_2;
+            sconst_0;
+            invokestatic 49;
+            bastore;
+            goto_w L_send;
+        L_c31:  // 31: getstatic_a
+            aload_2;
+            sconst_0;
+            invokestatic 63;
+            bastore;
+            goto_w L_send;
+        L_c32:  // 32: invokestatic
+            aload_2;
+            sconst_0;
+            invokestatic 50;
+            bastore;
+            goto_w L_send;
+        L_c33:  // 33: invoke_void
+            aload_2;
+            sconst_0;
+            invokestatic 64;
+            bastore;
+            goto_w L_send;
+        L_c34:  // 34: iadd
+            aload_2;
+            sconst_0;
+            invokestatic 51;
+            bastore;
+            goto_w L_send;
+        L_c35:  // 35: isub
+            aload_2;
+            sconst_0;
+            invokestatic 52;
+            bastore;
+            goto_w L_send;
+        L_c36:  // 36: imul
+            aload_2;
+            sconst_0;
+            invokestatic 53;
+            bastore;
+            goto_w L_send;
+        L_c37:  // 37: idiv
+            aload_2;
+            sconst_0;
+            invokestatic 54;
+            bastore;
+            goto_w L_send;
+        L_c38:  // 38: irem
+            aload_2;
+            sconst_0;
+            invokestatic 55;
+            bastore;
+            goto_w L_send;
+        L_c39:  // 39: ineg
+            aload_2;
+            sconst_0;
+            invokestatic 56;
+            bastore;
+            goto_w L_send;
+        L_c40:  // 40: iand
+            aload_2;
+            sconst_0;
+            invokestatic 57;
+            bastore;
+            goto_w L_send;
+        L_c41:  // 41: ior
+            aload_2;
+            sconst_0;
+            invokestatic 58;
+            bastore;
+            goto_w L_send;
+        L_c42:  // 42: ixor
+            aload_2;
+            sconst_0;
+            invokestatic 59;
+            bastore;
+            goto_w L_send;
+        L_c43:  // 43: ishl
+            aload_2;
+            sconst_0;
+            invokestatic 60;
+            bastore;
+            goto_w L_send;
+        L_c44:  // 44: ishr
+            aload_2;
+            sconst_0;
+            invokestatic 61;
+            bastore;
+            goto_w L_send;
+        L_c45:  // 45: iushr
+            aload_2;
+            sconst_0;
+            invokestatic 62;
+            bastore;
+            goto_w L_send;
+        L_c46:  // 46: iconst
+            aload_2;
+            sconst_0;
+            invokestatic 67;
+            bastore;
+            goto_w L_send;
+        L_c47:  // 47: bipush_int
+            aload_2;
+            sconst_0;
+            invokestatic 68;
+            bastore;
+            goto_w L_send;
+        L_c48:  // 48: sipush_int
+            aload_2;
+            sconst_0;
+            invokestatic 69;
+            bastore;
+            goto_w L_send;
+        L_c49:  // 49: iipush
+            aload_2;
+            sconst_0;
+            invokestatic 70;
+            bastore;
+            goto_w L_send;
+        L_c50:  // 50: i2b
+            aload_2;
+            sconst_0;
+            invokestatic 71;
+            bastore;
+            goto_w L_send;
+        L_c51:  // 51: icmp
+            aload_2;
+            sconst_0;
+            invokestatic 72;
+            bastore;
+            goto_w L_send;
+        L_c52:  // 52: iinc
+            aload_2;
+            sconst_0;
+            invokestatic 73;
+            bastore;
+            goto_w L_send;
+        L_c53:  // 53: pop2
+            aload_2;
+            sconst_0;
+            invokestatic 74;
+            bastore;
+            goto_w L_send;
+        L_c54:  // 54: ifne
+            aload_2;
+            sconst_0;
+            invokestatic 75;
+            bastore;
+            goto_w L_send;
+        L_c55:  // 55: if_scmpeq
+            aload_2;
+            sconst_0;
+            invokestatic 76;
+            bastore;
+            goto_w L_send;
+        L_c56:  // 56: aload
+            aload_2;
+            sconst_0;
+            invokestatic 77;
+            bastore;
+            goto_w L_send;
+        L_c57:  // 57: goto_w
+            aload_2;
+            sconst_0;
+            invokestatic 78;
+            bastore;
+            goto_w L_send;
+        L_c58:  // 58: ireturn
+            aload_2;
+            sconst_0;
+            invokestatic 79;
+            bastore;
+            goto_w L_send;
+        L_c59:  // 59: pop2_baseline
+            aload_2;
+            sconst_0;
+            invokestatic 80;
+            bastore;
+            goto_w L_send;
+        L_c60:  // 60: slookupswitch
+            aload_2;
+            sconst_0;
+            invokestatic 81;
+            bastore;
+            goto_w L_send;
+        L_c61:  // 61: stableswitch
+            aload_2;
+            sconst_0;
+            invokestatic 82;
+            bastore;
+            goto_w L_send;
+        L_c62:  // 62: loop (empty baseline)
+            aload_2;
+            sconst_0;
+            invokestatic 83;
+            bastore;
+            goto_w L_send;
+        L_c63:  // 63: exc_baseline
+            aload_2;
+            sconst_0;
+            invokestatic 85;
+            bastore;
+            goto_w L_send;
+        L_c64:  // 64: exc_sconst
+            aload_2;
+            sconst_0;
+            invokestatic 86;
+            bastore;
+            goto_w L_send;
+        L_c65:  // 65: exc_iconst
+            aload_2;
+            sconst_0;
+            invokestatic 87;
+            bastore;
+            goto_w L_send;
+        L_c66:  // 66: exc_sload
+            aload_2;
+            sconst_0;
+            invokestatic 88;
+            bastore;
+            goto_w L_send;
+        L_c67:  // 67: int_baseline
+            aload_2;
+            sconst_0;
+            invokestatic 91;
+            bastore;
+            goto_w L_send;
+        L_c68:  // 68: arr_baseline
+            aload_2;
+            sconst_0;
+            invokestatic 92;
+            bastore;
+            goto_w L_send;
+        L_c69:  // 69: getfield_a_this
+            aload_2;
+            sconst_0;
+            getstatic_a 93;
+            invokevirtual 95;
+            bastore;
+            goto_w L_send;
+        L_c70:  // 70: bastore
+            aload_2;
+            sconst_0;
+            invokestatic 96;
+            bastore;
+            goto_w L_send;
+        L_c71:  // 71: sastore
+            aload_2;
+            sconst_0;
+            invokestatic 97;
+            bastore;
+            goto_w L_send;
+        L_c72:  // 72: arr_baseline2
+            aload_2;
+            sconst_0;
+            invokestatic 98;
+            bastore;
+            goto_w L_send;
+        L_c73:  // 73: eeprom_baload
+            aload_2;
+            sconst_0;
+            invokestatic 100;
+            bastore;
+            goto_w L_send;
+        L_c74:  // 74: eeprom_bastore
+            aload_2;
+            sconst_0;
+            invokestatic 101;
+            bastore;
+            goto_w L_send;
+        L_c75:  // 75: empty_eeprom (reuses bench_loop)
+            aload_2;
+            sconst_0;
+            invokestatic 83;
+            bastore;
+            goto_w L_send;
+        L_c76:  // 76: linear_baseline
+            aload_2;
+            sconst_0;
+            invokestatic 102;
+            bastore;
+            goto_w L_send;
+        L_c77:  // 77: ram_linear_read
+            aload_2;
+            sconst_0;
+            invokestatic 103;
+            bastore;
+            goto_w L_send;
+        L_c78:  // 78: eeprom_linear_read
+            aload_2;
+            sconst_0;
+            invokestatic 104;
+            bastore;
+            goto_w L_send;
+        L_c79:  // 79: ram_linear_write
+            aload_2;
+            sconst_0;
+            invokestatic 105;
+            bastore;
+            goto_w L_send;
+        L_c80:  // 80: eeprom_linear_write
+            aload_2;
+            sconst_0;
+            invokestatic 106;
+            bastore;
+            goto_w L_send;
+        L_c81:  // 81: getstatic_b
+            aload_2;
+            sconst_0;
+            invokestatic 109;
+            bastore;
+            goto_w L_send;
+        L_c82:  // 82: putstatic_b
+            aload_2;
+            sconst_0;
+            invokestatic 110;
+            bastore;
+            goto_w L_send;
+        L_c83:  // 83: getstatic_s
+            aload_2;
+            sconst_0;
+            invokestatic 111;
+            bastore;
+            goto_w L_send;
+        L_c84:  // 84: putstatic_s
+            aload_2;
+            sconst_0;
+            invokestatic 112;
+            bastore;
+            goto_w L_send;
+        L_send:
+            aload_0;
+            invokevirtual 15;
+            pop;
+            aload_0;
+            sconst_1;
+            invokevirtual 16;
+            aload_0;
+            sconst_0;
+            sconst_1;
+            invokevirtual 17;
+            goto L_end;
+        L_error:
+            sspush 27904;
+            invokestatic 18;
+        L_end:
+            return;
+        }
+
+        // INT_BASELINE: Body = iconst_5; iconst_3; pop2; pop2 (4 insns, 2 push 2 pop int)
+        .method private static bench_int_baseline()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            iconst_5;
+            iconst_3;
+            pop2;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ARR_BASELINE: Body = getstatic_a; sconst_0; pop; pop (4 insns, 2 push 2 pop)
+        .method private static bench_arr_baseline()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            sconst_0;
+            pop;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // GETFIELD_A_THIS: Body = getfield_a_this 94; pop (2 insns)
+        // Instance method — slot 0 = this, slots 1-3 = loop vars
+        .method public bench_getfield_a_this()B 8 {
+            .stack 4;
+            .locals 4;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_3;
+            sconst_0;
+            sstore_1;
+            sconst_0;
+            sstore_2;
+            goto L_test;
+        L_body:
+            getfield_a_this 94;
+            pop;
+            sinc 2 1;
+            sinc 1 1;
+        L_test:
+            sload_1;
+            sload_3;
+            if_scmplt L_body;
+            sload_2;
+            s2b;
+            sreturn;
+        }
+
+        // BASTORE: Body = getstatic_a 10; sconst_0; sconst_5; bastore (4 insns, stack-neutral)
+        .method private static bench_bastore()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            sconst_0;
+            sconst_5;
+            bastore;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // SASTORE: Body = getstatic_a 12; sconst_1; sconst_5; sastore (4 insns, stack-neutral)
+        .method private static bench_sastore()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 12;
+            sconst_1;
+            sconst_5;
+            sastore;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // ARR_BASELINE2: Body = getstatic_a 10; sconst_0; pop2 (3 insns)
+        .method private static bench_arr_baseline2()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            sconst_0;
+            pop2;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // EEPROM_BALOAD: Body = getstatic_a 99; sconst_0; baload; pop (4 insns)
+        // Reads from EEPROM-backed byte array.
+        .method private static bench_eeprom_baload()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 99;
+            sconst_0;
+            baload;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // EEPROM_BASTORE: Body = getstatic_a 99; sconst_0; sconst_5; bastore (4 insns)
+        // Writes to EEPROM-backed byte array. Driver sends iters=1 to limit wear.
+        .method private static bench_eeprom_bastore()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 99;
+            sconst_0;
+            sconst_5;
+            bastore;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // LINEAR_BASELINE: Body = getstatic_a 99; sload_0; sconst_5; pop2; pop (5 insns)
+        // Pushes same 3 values as linear write, discards without store.
+        .method private static bench_linear_baseline()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 99;
+            sload_0;
+            sconst_5;
+            pop2;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // RAM_LINEAR_READ: Body = getstatic_a 10; sload_0; baload; pop (4 insns)
+        // Reads MEM_B[i] for i = 0..999.
+        .method private static bench_ram_linear_read()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            sload_0;
+            baload;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // EEPROM_LINEAR_READ: Body = getstatic_a 99; sload_0; baload; pop (4 insns)
+        // Reads EEPROM_B[i] for i = 0..999.
+        .method private static bench_eeprom_linear_read()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 99;
+            sload_0;
+            baload;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // RAM_LINEAR_WRITE: Body = getstatic_a 10; sload_0; sconst_5; bastore (4 insns)
+        // Writes 5 to MEM_B[i] for i = 0..999.
+        .method private static bench_ram_linear_write()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 10;
+            sload_0;
+            sconst_5;
+            bastore;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // EEPROM_LINEAR_WRITE: Body = getstatic_a 99; sload_0; sconst_5; bastore (4 insns)
+        // Writes 5 to EEPROM_B[i] for i = 0..999.
+        .method private static bench_eeprom_linear_write()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_a 99;
+            sload_0;
+            sconst_5;
+            bastore;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // GETSTATIC_B: Body = getstatic_b 107; pop (2 insns)
+        .method private static bench_getstatic_b()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_b 107;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // PUTSTATIC_B: Body = sconst_5; putstatic_b 107 (2 insns)
+        .method private static bench_putstatic_b()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            putstatic_b 107;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // GETSTATIC_S: Body = getstatic_s 108; pop (2 insns)
+        .method private static bench_getstatic_s()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            getstatic_s 108;
+            pop;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        // PUTSTATIC_S: Body = sconst_5; putstatic_s 108 (2 insns)
+        .method private static bench_putstatic_s()B {
+            .stack 4;
+            .locals 3;
+
+            getstatic_a 12;
+            sconst_0;
+            saload;
+            sstore_2;
+            sconst_0;
+            sstore_0;
+            sconst_0;
+            sstore_1;
+            goto L_test;
+        L_body:
+            sconst_5;
+            putstatic_s 108;
+            sinc 1 1;
+            sinc 0 1;
+        L_test:
+            sload_0;
+            sload_2;
+            if_scmplt L_body;
+            sload_1;
+            s2b;
+            sreturn;
+        }
+
+        .method private static _jcsl_method_cap_fix()V {
+            .stack 2;
+            .locals 0;
+
+        L0:
+            return;
+        }
+
+    }
+}

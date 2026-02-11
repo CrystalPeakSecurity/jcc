@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>JCVM Instruction Benchmark</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; background: #0d1117; color: #c9d1d9; padding: 32px; max-width: 1200px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 600; color: #f0f6fc; margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: #8b949e; margin-bottom: 24px; }
+.section { margin-bottom: 20px; }
+.section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+  color: #8b949e; margin-bottom: 6px; padding-bottom: 4px;
+  border-bottom: 1px solid #21262d; cursor: pointer; user-select: none;
+}
+.section-title:hover { color: #c9d1d9; }
+.section-title::before { content: '\25BE '; font-size: 10px; }
+.section.collapsed .section-title::before { content: '\25B8 '; }
+.section.collapsed .row { display: none; }
+.row {
+  display: grid; grid-template-columns: 420px 1fr 64px 58px 72px; align-items: center;
+  height: 26px; gap: 0 6px;
+}
+.row.gap { margin-top: 0px; }
+.row.tight { margin-top: -8px; }
+.label { font-size: 12px; color: #c9d1d9; padding-left: 4px; white-space: nowrap; }
+.bar-bg { height: 14px; background: #161b22; border-radius: 3px; position: relative; }
+.bar { height: 100%; border-radius: 3px; min-width: 2px; }
+.baseline-mark { position: absolute; top: -1px; bottom: -1px; width: 2px; background: rgba(255,255,255,0.6); z-index: 1; }
+.value { font-size: 12px; text-align: right; font-variant-numeric: tabular-nums; color: #8b949e; }
+.delta { font-size: 12px; display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; color: #c9d1d9; padding: 0 10px 0 12px; }
+.weight { font-size: 10px; text-align: center; border-radius: 3px; padding: 1px 6px; font-weight: 600; white-space: nowrap; }
+.weight.w-light   { background: #1a3a2a; color: #3fb950; }
+.weight.w-moderate { background: #3a3520; color: #d29922; }
+.weight.w-heavy   { background: #3a2a1a; color: #e87b3a; }
+.weight.w-turtle  { background: #3a1a1a; color: #ee4f4f; }
+.weight.w-glacial { background: #2a1a3a; color: #bc8cff; }
+.weight.w-danger  { background: #000; color: #BBB; border: 1px solid #BBB; }
+.cat-byte .bar  { background: linear-gradient(90deg, #c98a1d, #e3b341); }
+.cat-short .bar { background: linear-gradient(90deg, #cc6228, #e87b3a); }
+.cat-int .bar   { background: linear-gradient(90deg, #cc3838, #ee4f4f); }
+.cat-conv .bar  { background: linear-gradient(90deg, #2ea8a1, #39d2c0); }
+.cat-cf .bar    { background: linear-gradient(90deg, #388bfd, #58a6ff); }
+.cat-inv .bar   { background: linear-gradient(90deg, #db61a2, #f778ba); }
+.cat-ref .bar   { background: linear-gradient(90deg, #a371f7, #bc8cff); }
+.cat-nop .bar   { background: linear-gradient(90deg, #6e7681, #8b949e); }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8b949e; }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+.note {
+  font-size: 11px; color: #8b949e; margin-top: 20px; padding: 12px;
+  background: #161b22; border-radius: 6px; border: 1px solid #21262d; line-height: 1.7;
+}
+.note strong { color: #c9d1d9; }
+.note code { color: #58a6ff; font-size: 11px; }
+</style>
+</head>
+<body>
+<h1>JCVM Instruction Cost (Raw Measurements)</h1>
+<div class="subtitle">J3R180 &mdash; 1000 iters &times; 5 runs &times; 7 suites (drop hi/lo) &mdash; empty-loop baseline subtracted</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#e3b341"></div>Byte</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e87b3a"></div>Short</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ee4f4f"></div>Int</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#39d2c0"></div>Conversion / Stack</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#58a6ff"></div>Control Flow</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f778ba"></div>Invocation</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#bc8cff"></div>Reference</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8b949e"></div>Other</div>
+</div>
+<div id="chart"></div>
+<div class="note">
+  <strong>Methodology:</strong> Each bar shows the raw measured cost of a complete stack-neutral instruction sequence,
+  with the empty-loop baseline subtracted. Benchmarks are grouped by stack profile (push/pop count) so that
+  comparisons <em>within</em> a group are exact. Comparisons across groups with different push/pop counts include
+  an ambiguous push/pop overhead that cannot be separated from stack-neutral measurements.
+</div>
+<script>
+const data = [{"section": "0 Push, 0 Pop", "items": [{"insns": 1, "scaffold": 0, "cat": "cf", "name": "goto_w L; L:", "us": 3.056423319997066}, {"insns": 1, "scaffold": 0, "cat": "short", "name": "sinc 3 1", "us": 4.180041759995561, "gap": true}, {"insns": 1, "scaffold": 0, "cat": "int", "name": "iinc 3 1", "us": 4.314389959999403, "tight": true}, {"insns": 1, "scaffold": 0, "cat": "nop", "name": "nop", "us": 65.53765327999997, "gap": true}, {"insns": 2, "scaffold": 0, "cat": "inv", "name": "invokestatic (void)", "us": 21.66015663999758, "gap": true}]}, {"section": "1 Push, 1 Pop (short)", "baseline": 5.7123799599980885, "items": [{"insns": 2, "scaffold": 2, "cat": "short", "name": "sconst 5; pop", "us": 5.7123799599980885}, {"insns": 2, "scaffold": 1, "cat": "short", "name": "bspush 5; pop", "us": 6.552258319999851, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "short", "name": "sspush 5; pop", "us": 6.788849879994814, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "short", "name": "sload; pop", "us": 5.908094960000199, "gap": true}, {"insns": 2, "scaffold": 1, "cat": "ref", "name": "aload; pop", "us": 6.0968866799981924, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "ref", "name": "getstatic_a; pop", "us": 10.729156600000351, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "ref", "name": "getfield_a_this; pop", "us": 17.620703239999216, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "short", "name": "sconst 5; sstore", "us": 7.031471600001851, "gap": true}, {"insns": 3, "scaffold": 2, "cat": "conv", "name": "sconst 5; sneg; pop", "us": 9.11613331999547, "gap": true}, {"insns": 3, "scaffold": 2, "cat": "conv", "name": "sconst 5; s2b; pop", "us": 9.111278359999345, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "cf", "name": "sconst 5; ifeq L; L:", "us": 7.179026760000511, "gap": true}, {"insns": 2, "scaffold": 1, "cat": "cf", "name": "sconst 5; ifne L; L:", "us": 8.040514959997154, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "cf", "name": "sconst 1; slookupswitch L; L:", "us": 9.465596599998207, "gap": true}, {"insns": 2, "scaffold": 1, "cat": "cf", "name": "sconst 0; stableswitch L; L:", "us": 12.356958399996074, "tight": true}, {"insns": 4, "scaffold": 2, "cat": "inv", "name": "invokestatic (short); pop", "us": 29.340988399998764, "gap": true}]}, {"section": "1 Push, 1 Pop (int)", "baseline": 6.2989599199971735, "items": [{"insns": 2, "scaffold": 2, "cat": "int", "name": "iconst 5; pop2", "us": 6.2989599199971735}, {"insns": 2, "scaffold": 1, "cat": "int", "name": "bipush 5; pop2", "us": 6.781023239998376, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "int", "name": "sipush 5; pop2", "us": 6.711813400000324, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "int", "name": "iipush 5; pop2", "us": 7.692513480000116, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "int", "name": "iload; pop2", "us": 6.436978280000858, "gap": true}, {"insns": 2, "scaffold": 1, "cat": "int", "name": "iconst 5; istore", "us": 8.26009332000126, "gap": true}, {"insns": 3, "scaffold": 2, "cat": "conv", "name": "iconst 5; i2s; pop", "us": 8.50274339999771, "gap": true}, {"insns": 3, "scaffold": 2, "cat": "conv", "name": "iconst 5; i2b; pop", "us": 9.678095119996327, "tight": true}, {"insns": 3, "scaffold": 2, "cat": "int", "name": "iconst 5; ineg; pop2", "us": 9.667515119998598, "gap": true}, {"insns": 4, "scaffold": 2, "cat": "inv", "name": "invokestatic (int); pop2", "us": 29.613364960001714, "gap": true}]}, {"section": "2 Push, 2 Pop (short)", "baseline": 9.288736720001225, "items": [{"insns": 3, "scaffold": 3, "cat": "conv", "name": "sconst 5; sconst 3; pop2", "us": 9.288736720001225}, {"insns": 4, "scaffold": 4, "cat": "conv", "name": "sconst 5; sconst 3; pop; pop", "us": 11.700145119999661, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "conv", "name": "sconst 5; dup; pop; pop", "us": 11.63178663999872, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sadd; pop", "us": 12.480134999995016, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; ssub; pop", "us": 12.43818988000214, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; smul; pop", "us": 13.062626600000158, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sdiv; pop", "us": 14.664656599998692, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; srem; pop", "us": 15.548586799999384, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sand; pop", "us": 12.85351012000092, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sor; pop", "us": 12.671994920000886, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sxor; pop", "us": 12.603303359998678, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sshl; pop", "us": 14.16299995999907, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sshr; pop", "us": 14.032463199999938, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; sconst 3; sushr; pop", "us": 14.03300007999519, "tight": true}, {"insns": 3, "scaffold": 2, "cat": "cf", "name": "sconst 3; sconst 5; if_scmplt L; L:", "us": 11.427268319996529, "gap": true}, {"insns": 3, "scaffold": 2, "cat": "cf", "name": "sconst 5; sconst 5; if_scmpeq L; L:", "us": 11.52798011999721, "tight": true}]}, {"section": "2 Push, 2 Pop (int)", "baseline": 12.515106679999235, "items": [{"insns": 4, "scaffold": 4, "cat": "int", "name": "iconst 5; iconst 3; pop2; pop2", "us": 12.515106679999235}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; iadd; pop2", "us": 13.929333319998705, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; isub; pop2", "us": 13.78296991999946, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; imul; pop2", "us": 15.542286640002203, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; idiv; pop2", "us": 16.572899959998036, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; irem; pop2", "us": 19.01093327999888, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; iand; pop2", "us": 13.77705507999906, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; ior; pop2", "us": 13.949576719996346, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; ixor; pop2", "us": 13.83777831999794, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; ishl; pop2", "us": 15.003171760001806, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; ishr; pop2", "us": 15.23352683999633, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; iushr; pop2", "us": 14.941196799999831, "tight": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; iconst 3; icmp; pop", "us": 14.20833347999519, "gap": true}]}, {"section": "Array Access", "baseline": 13.695418239994979, "items": [{"insns": 3, "scaffold": 2, "cat": "ref", "name": "getstatic_a; sconst 0; pop2", "us": 13.695418239994979}, {"insns": 4, "scaffold": 3, "cat": "ref", "name": "getstatic_a; sconst 0; pop; pop", "us": 16.161581559998126, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "byte", "name": "getstatic_b; pop (direct field)", "us": 10.68069335999894, "gap": true}, {"insns": 4, "scaffold": 2, "cat": "byte", "name": "getstatic_a; sconst 0; baload; pop (array)", "us": 29.01924651999991, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "short", "name": "getstatic_s; pop (direct field)", "us": 10.80552996000108, "gap": true}, {"insns": 4, "scaffold": 2, "cat": "short", "name": "getstatic_a; sconst 1; saload; pop (array)", "us": 30.74224671999616, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "byte", "name": "sconst 5; putstatic_b (direct field)", "us": 11.903470040001594, "gap": true}, {"insns": 4, "scaffold": 2, "cat": "byte", "name": "getstatic_a; sconst 0; sconst 5; bastore (array)", "us": 29.215306640001018, "tight": true}, {"insns": 2, "scaffold": 1, "cat": "short", "name": "sconst 5; putstatic_s (direct field)", "us": 11.952328279998598, "gap": true}, {"insns": 4, "scaffold": 2, "cat": "short", "name": "getstatic_a; sconst 1; sconst 5; sastore (array)", "us": 33.56428852000362, "tight": true}, {"insns": 8, "scaffold": 3, "cat": "byte", "name": "getstatic_a; sconst 0; sconst 5; bastore; baload; pop", "us": 58.49332840000102, "gap": true}, {"insns": 8, "scaffold": 3, "cat": "short", "name": "getstatic_a; sconst 1; sconst 5; sastore; saload; pop", "us": 64.28334500000346, "tight": true}]}, {"section": "Exceptions", "baseline": 50.196371599994336, "items": [{"insns": 3, "scaffold": 2, "cat": "nop", "name": "aconst_null; athrow (baseline)", "us": 50.196371599994336}, {"insns": 4, "scaffold": 3, "cat": "short", "name": "sconst 5; aconst_null; athrow", "us": 55.229443279995394, "gap": true}, {"insns": 4, "scaffold": 3, "cat": "int", "name": "iconst 5; aconst_null; athrow", "us": 57.395253399997735, "tight": true}, {"insns": 4, "scaffold": 2, "cat": "short", "name": "sload 3; aconst_null; athrow", "us": 58.73544827999979, "tight": true}]}, {"section": "Linear Array Access (1000 bytes)", "baseline": 19.84164171999737, "items": [{"insns": 5, "scaffold": 3, "cat": "nop", "name": "getstatic_a; sload i; sconst 5; pop2; pop (baseline)", "us": 19.84164171999737}, {"insns": 4, "scaffold": 1, "cat": "byte", "name": "getstatic_a RAM; sload i; baload; pop", "us": 29.287918360001864, "gap": true}, {"insns": 4, "scaffold": 1, "cat": "byte", "name": "getstatic_a EEPROM; sload i; baload; pop", "us": 30.01943996000023, "tight": true}, {"insns": 4, "scaffold": 1, "cat": "byte", "name": "getstatic_a RAM; sload i; sconst 5; bastore", "us": 29.526998440002213, "gap": true}, {"insns": 4, "scaffold": 1, "cat": "byte", "name": "getstatic_a EEPROM; sload i; sconst 5; bastore", "us": 29.656660040001267, "tight": true}]}];
+const chart = document.getElementById('chart');
+const sections = [];
+data.forEach(section => {
+  const div = document.createElement('div');
+  div.className = 'section';
+  const title = document.createElement('div');
+  title.className = 'section-title';
+  title.textContent = section.section;
+  title.addEventListener('click', () => {
+    div.classList.toggle('collapsed');
+    rescale();
+  });
+  div.appendChild(title);
+  const rows = [];
+  const bl = section.baseline || 0;
+  section.items.forEach((item, idx) => {
+    const us = Math.max(0, item.us);
+    const row = document.createElement('div');
+    let cls = `row cat-${item.cat}`;
+    if (item.gap) cls += ' gap';
+    if (item.tight) cls += ' tight';
+    row.className = cls;
+    const delta = bl > 0 ? us - bl : 0;
+    const isBaseline = bl > 0 && idx === 0;
+    const deltaSign = (bl > 0 && !isBaseline) ? (delta >= 0 ? '+' : '−') : '';
+    const deltaNum = (bl > 0 && !isBaseline) ? Math.abs(delta).toFixed(1) : '';
+    const insns = item.insns || 0;
+    const scaff = item.scaffold || 0;
+    const adjInsns = insns - scaff;
+    const adjUs = us - scaff * 2.8;
+    const BASELINE = 2.8;
+    let wLabel = '', wCls = '';
+    if (insns > 0) {
+      let uspi;
+      if (adjInsns <= 0) { uspi = BASELINE; }
+      else { uspi = adjUs / adjInsns; }
+      const mult = uspi / BASELINE;
+      if (mult < 1.4)       { wCls = 'w-light'; }
+      else if (mult < 1.6)  { wCls = 'w-moderate'; }
+      else if (mult < 2.25) { wCls = 'w-heavy'; }
+      else if (mult < 3.2)  { wCls = 'w-turtle'; }
+      else if (mult < 5.7)  { wCls = 'w-glacial'; }
+      else                   { wCls = 'w-danger'; }
+      wLabel = mult.toFixed(1) + 'x';
+    }
+    const weightHtml = wLabel ? `<div class="weight ${wCls}">${wLabel}</div>` : `<div class="weight"></div>`;
+    row.innerHTML = `
+      <div class="label">${item.name}</div>
+      <div class="bar-bg"><div class="bar"></div></div>
+      <div class="value">${us.toFixed(1)} us</div>
+      <div class="delta"><span>${deltaSign}</span><span>${deltaNum}</span></div>
+      ${weightHtml}`;
+    div.appendChild(row);
+    rows.push({ el: row, us });
+  });
+  sections.push({ el: div, rows, bl });
+  chart.appendChild(div);
+});
+function rescale() {
+  let maxUs = 0;
+  sections.forEach(s => {
+    if (!s.el.classList.contains('collapsed'))
+      s.rows.forEach(r => { if (r.us > maxUs) maxUs = r.us; });
+  });
+  maxUs = maxUs || 5;
+  sections.forEach(s => {
+    s.rows.forEach(r => {
+      const pct = Math.min(100, (r.us / maxUs) * 100);
+      r.el.querySelector('.bar').style.width = pct + '%';
+      const bg = r.el.querySelector('.bar-bg');
+      let mark = bg.querySelector('.baseline-mark');
+      if (s.bl > 0) {
+        if (!mark) { mark = document.createElement('div'); mark.className = 'baseline-mark'; bg.appendChild(mark); }
+        mark.style.left = Math.min(100, (s.bl / maxUs) * 100) + '%';
+      } else if (mark) { mark.remove(); }
+    });
+  });
+}
+rescale();
+</script>
+</body>
+</html>

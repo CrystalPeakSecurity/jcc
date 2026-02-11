@@ -10,7 +10,6 @@ from collections import defaultdict
 # WAD File Reading
 # =============================================================================
 
-
 def read_wad_header(f):
     """Read 12-byte WAD header"""
     data = f.read(12)
@@ -25,7 +24,6 @@ def read_wad_header(f):
         raise ValueError(f"Invalid WAD identification: {identification}")
 
     return identification, numlumps, infotableofs
-
 
 def read_directory(f, numlumps, infotableofs):
     """Read lump directory"""
@@ -45,7 +43,6 @@ def read_directory(f, numlumps, infotableofs):
 
     return directory
 
-
 def find_lump(directory, name, start_idx=0):
     """Find lump by name (case-insensitive), starting from index"""
     name_upper = name.upper()
@@ -54,17 +51,14 @@ def find_lump(directory, name, start_idx=0):
             return i, entry
     return -1, None
 
-
 def read_lump(f, lump):
     """Read raw lump data"""
     f.seek(lump["filepos"])
     return f.read(lump["size"])
 
-
 # =============================================================================
 # Lump Parsing
 # =============================================================================
-
 
 def parse_things(data):
     """Parse THINGS: 10 bytes each (x:i16, y:i16, angle:i16, type:i16, flags:i16)"""
@@ -78,7 +72,6 @@ def parse_things(data):
 
     return things
 
-
 def parse_vertexes(data):
     """Parse VERTEXES: 4 bytes each (x:i16, y:i16)"""
     vertexes = []
@@ -90,7 +83,6 @@ def parse_vertexes(data):
         vertexes.append({"x": x, "y": y})
 
     return vertexes
-
 
 def parse_linedefs(data):
     """Parse LINEDEFS: 14 bytes each"""
@@ -106,7 +98,6 @@ def parse_linedefs(data):
 
     return linedefs
 
-
 def parse_sidedefs(data):
     """Parse SIDEDEFS: 30 bytes each (we only extract sector index for wireframe)"""
     sidedefs = []
@@ -119,7 +110,6 @@ def parse_sidedefs(data):
         sidedefs.append({"sector": sector})
 
     return sidedefs
-
 
 def parse_sectors(data):
     """Parse SECTORS: 26 bytes each"""
@@ -142,7 +132,6 @@ def parse_sectors(data):
 
     return sectors
 
-
 def parse_segs(data):
     """Parse SEGS: 12 bytes each"""
     segs = []
@@ -155,7 +144,6 @@ def parse_segs(data):
 
     return segs
 
-
 def parse_subsectors(data):
     """Parse SSECTORS: 4 bytes each (numsegs:i16, firstseg:i16)"""
     subsectors = []
@@ -167,7 +155,6 @@ def parse_subsectors(data):
         subsectors.append({"numsegs": numsegs, "firstseg": firstseg})
 
     return subsectors
-
 
 def parse_nodes(data):
     """Parse NODES: 28 bytes each"""
@@ -195,52 +182,9 @@ def parse_nodes(data):
 
     return nodes
 
-
-def parse_blockmap(data):
-    """Parse BLOCKMAP lump.
-
-    JDOOM Reference: LevelLoader.java:431-463
-
-    Format:
-    - 4 shorts: orgx, orgy, width, height (header)
-    - width*height shorts: offsets into blockmaplump for each block
-    - Line lists: sequences of line indices, each terminated by -1
-
-    Returns:
-        dict with orgx, orgy, width, height, blockmap (offset array), blockmaplump (full data)
-    """
-    count = len(data) // 2
-    shorts = []
-    for i in range(count):
-        val = struct.unpack("<h", data[i * 2 : i * 2 + 2])[0]
-        shorts.append(val)
-
-    orgx = shorts[0]
-    orgy = shorts[1]
-    width = shorts[2]
-    height = shorts[3]
-
-    # blockmap is the array of offsets (after the 4-word header)
-    # Each offset points into shorts[] where the line list starts
-    blockmap = shorts[4 : 4 + width * height]
-
-    # blockmaplump is the full array (including header), used for line lookups
-    blockmaplump = shorts
-
-    return {
-        "orgx": orgx,
-        "orgy": orgy,
-        "width": width,
-        "height": height,
-        "blockmap": blockmap,
-        "blockmaplump": blockmaplump,
-    }
-
-
 # =============================================================================
 # Sector 3-Coloring (Vertex Adjacency)
 # =============================================================================
-
 
 def build_adjacency(num_sectors, sidedefs, linedefs):
     """Build adjacency graph from shared vertices.
@@ -279,7 +223,6 @@ def build_adjacency(num_sectors, sidedefs, linedefs):
 
     return [list(neighbors) for neighbors in adj]
 
-
 def count_conflicts(adj, colors):
     """Count edges where both endpoints have same color."""
     conflicts = 0
@@ -288,7 +231,6 @@ def count_conflicts(adj, colors):
             if i < j and colors[i] == colors[j]:
                 conflicts += 1
     return conflicts
-
 
 def solve_three_color_optimal(adj):
     """Find 3-coloring that minimizes conflicts and balances color usage.
@@ -357,78 +299,13 @@ def solve_three_color_optimal(adj):
 
     return colors
 
-
 # =============================================================================
 # Line Collision Data Computation
 # =============================================================================
 
-# Slope types (from JDOOM RDefs.slopetype_t)
-ST_HORIZONTAL = 0
-ST_VERTICAL = 1
-ST_POSITIVE = 2
-ST_NEGATIVE = 3
-
-
-def compute_line_collision_data(linedefs, vertexes):
-    """Compute collision data for linedefs.
-
-    JDOOM Reference: LevelLoader.java - P_LoadLineDefs computes dx, dy, slopetype, bbox
-
-    Returns arrays of:
-    - dx, dy: line direction vectors
-    - slopetype: 0=horiz, 1=vert, 2=positive, 3=negative
-    - bbox: left, right, top, bottom
-    """
-    line_dx = []
-    line_dy = []
-    line_slopetype = []
-    line_bbox_left = []
-    line_bbox_right = []
-    line_bbox_top = []
-    line_bbox_bottom = []
-
-    for ld in linedefs:
-        v1 = vertexes[ld["v1"]]
-        v2 = vertexes[ld["v2"]]
-
-        # Direction vector
-        dx = v2["x"] - v1["x"]
-        dy = v2["y"] - v1["y"]
-        line_dx.append(dx)
-        line_dy.append(dy)
-
-        # Slopetype (JDOOM: LevelLoader.java determines this)
-        if dx == 0:
-            slopetype = ST_VERTICAL
-        elif dy == 0:
-            slopetype = ST_HORIZONTAL
-        elif (dx > 0) == (dy > 0):  # Same sign = positive slope
-            slopetype = ST_POSITIVE
-        else:
-            slopetype = ST_NEGATIVE
-        line_slopetype.append(slopetype)
-
-        # Bounding box
-        line_bbox_left.append(min(v1["x"], v2["x"]))
-        line_bbox_right.append(max(v1["x"], v2["x"]))
-        line_bbox_top.append(max(v1["y"], v2["y"]))
-        line_bbox_bottom.append(min(v1["y"], v2["y"]))
-
-    return {
-        "dx": line_dx,
-        "dy": line_dy,
-        "slopetype": line_slopetype,
-        "bbox_left": line_bbox_left,
-        "bbox_right": line_bbox_right,
-        "bbox_top": line_bbox_top,
-        "bbox_bottom": line_bbox_bottom,
-    }
-
-
 # =============================================================================
 # Subsector Sector Resolution
 # =============================================================================
-
 
 def resolve_subsector_sectors(subsectors, segs, linedefs, sidedefs):
     """Determine which sector each subsector belongs to"""
@@ -451,11 +328,9 @@ def resolve_subsector_sectors(subsectors, segs, linedefs, sidedefs):
         else:
             ss["sector"] = 0
 
-
 # =============================================================================
 # Player Start Finding
 # =============================================================================
-
 
 def find_player_start(things):
     """Find Player 1 start position (thing type 1)"""
@@ -464,11 +339,9 @@ def find_player_start(things):
             return thing
     return None
 
-
 # =============================================================================
 # Code Generation
 # =============================================================================
-
 
 def generate_level_h(
     vertexes,
@@ -479,8 +352,6 @@ def generate_level_h(
     subsectors,
     nodes,
     player_start,
-    blockmap_data,
-    line_collision,
     sector_colors,
     conflicts,
 ):
@@ -499,8 +370,6 @@ def generate_level_h(
 
     # Counts
     lines.append(f"#define NUM_VERTEXES {len(vertexes)}")
-    lines.append(f"#define NUM_LINEDEFS {len(linedefs)}")
-    lines.append(f"#define NUM_SIDEDEFS {len(sidedefs)}")
     lines.append(f"#define NUM_SECTORS {len(sectors)}")
     lines.append(f"#define NUM_SEGS {len(segs)}")
     lines.append(f"#define NUM_SUBSECTORS {len(subsectors)}")
@@ -510,17 +379,16 @@ def generate_level_h(
 
     # Player start
     if player_start:
-        # Convert map units to fixed-point (16.16)
-        px = player_start["x"] << 16
-        py = player_start["y"] << 16
-        # Angle: DOOM angle 0-360 maps to 0-65535, we need BAM (0-2^32)
-        # DOOM angle 0 = East, 90 = North
-        # angle * 65536 / 360 gives 16-bit angle, shift <<16 for 32-bit BAM
-        pangle = ((player_start["angle"] * 65536) // 360) << 16
-        lines.append("// Player 1 start position")
-        lines.append(f"#define PLAYER_START_X 0x{px & 0xFFFFFFFF:08X}")
-        lines.append(f"#define PLAYER_START_Y 0x{py & 0xFFFFFFFF:08X}")
-        lines.append(f"#define PLAYER_START_ANGLE 0x{pangle & 0xFFFFFFFF:08X}")
+        # 16-bit: map units directly, 16-bit BAM angle
+        px = player_start["x"]  # short, map units
+        py = player_start["y"]  # short, map units
+        # Angle: degrees * 182 ≈ degrees * 65536 / 360 (16-bit BAM)
+        pangle = (player_start["angle"] * 182) & 0xFFFF
+        lines.append("// Player 1 start position (16-bit: map units and 16-bit BAM)")
+        lines.append(f"#define PLAYER_START_X {px}")
+        py_s = py if py >= 0 else f"((short){py})"
+        lines.append(f"#define PLAYER_START_Y {py_s}")
+        lines.append(f"#define PLAYER_START_ANGLE 0x{pangle:04X}")
     else:
         lines.append("#define PLAYER_START_X 0")
         lines.append("#define PLAYER_START_Y 0")
@@ -535,46 +403,19 @@ def generate_level_h(
     lines.append("// These macros provide cleaner access syntax.")
     lines.append("// =============================================================================")
     lines.append("")
-    lines.append("// Vertex access: VERTEX_X(i), VERTEX_Y(i)")
-    lines.append("#define VERTEX_X(i) vertex_x[i]")
-    lines.append("#define VERTEX_Y(i) vertex_y[i]")
+    lines.append("// Seg vertex access (precomputed, eliminates vertex index indirection)")
+    lines.append("#define SEG_V1_X(i) seg_v1_x[i]")
+    lines.append("#define SEG_V1_Y(i) seg_v1_y[i]")
+    lines.append("#define SEG_V2_X(i) seg_v2_x[i]")
+    lines.append("#define SEG_V2_Y(i) seg_v2_y[i]")
     lines.append("")
     lines.append("// Sector access")
     lines.append("#define SECTOR_FLOOR(i)   sector_floor[i]")
     lines.append("#define SECTOR_CEILING(i) sector_ceiling[i]")
-    lines.append("#define SECTOR_SPECIAL(i) sector_special[i]")
-    lines.append("#define SECTOR_TAG(i)     sector_tag[i]")
-    lines.append("#define SECTOR_COLOR(i)   sector_color[i]  // Returns 0-2, map to actual colors at use site")
-    lines.append("")
-    lines.append("// Linedef access")
-    lines.append("#define LINE_V1(i)      line_v1[i]")
-    lines.append("#define LINE_V2(i)      line_v2[i]")
-    lines.append("#define LINE_FLAGS(i)   line_flags[i]")
-    lines.append("#define LINE_SPECIAL(i) line_special[i]")
-    lines.append("#define LINE_TAG(i)     line_tag[i]")
-    lines.append("#define LINE_FRONT(i)   line_front[i]")
-    lines.append("#define LINE_BACK(i)    line_back[i]")
-    lines.append("#define LINE_DX(i)      line_dx[i]")
-    lines.append("#define LINE_DY(i)      line_dy[i]")
-    lines.append("#define LINE_SLOPETYPE(i) line_slopetype[i]")
-    lines.append("#define LINE_BBOX_LEFT(i)   line_bbox_left[i]")
-    lines.append("#define LINE_BBOX_RIGHT(i)  line_bbox_right[i]")
-    lines.append("#define LINE_BBOX_TOP(i)    line_bbox_top[i]")
-    lines.append("#define LINE_BBOX_BOTTOM(i) line_bbox_bottom[i]")
-    lines.append("")
-    lines.append("// Sidedef access")
-    lines.append("#define SIDE_SECTOR(i) side_sector[i]")
+    lines.append("#define SECTOR_COLOR(i) sector_color[i] // Fill byte: 0x55/0xAA/0xFF")
     lines.append("")
     lines.append("// Seg access")
-    lines.append("#define SEG_V1(i)      seg_v1[i]")
-    lines.append("#define SEG_V2(i)      seg_v2[i]")
     lines.append("#define SEG_ANGLE(i)   seg_angle[i]")
-    lines.append("#define SEG_LINEDEF(i) seg_linedef[i]")
-    lines.append("#define SEG_SIDE(i)    seg_side[i]")
-    lines.append("#define SEG_OFFSET(i)  seg_offset[i]")
-    lines.append("")
-    lines.append("// Seg angle as 32-bit BAM (JDOOM: LevelLoader.java:131 shifts <<16 at load time)")
-    lines.append("#define SEG_ANGLE_BAM(i) (((int)seg_angle[i]) << 16)")
     lines.append("")
     lines.append("// Optimized seg→sector lookups (precomputed to avoid 3-hop indirection)")
     lines.append("#define SEG_FRONTSECTOR(i) seg_frontsector[i]")
@@ -604,18 +445,6 @@ def generate_level_h(
     lines.append("#define NODE_CHILD_R(i) node_child_r[i]")
     lines.append("#define NODE_CHILD_L(i) node_child_l[i]")
     lines.append("")
-    lines.append("// Slope types")
-    lines.append("#define ST_HORIZONTAL 0")
-    lines.append("#define ST_VERTICAL   1")
-    lines.append("#define ST_POSITIVE   2")
-    lines.append("#define ST_NEGATIVE   3")
-    lines.append("")
-    lines.append("// Line flags (for collision)")
-    lines.append("#define ML_BLOCKING      0x0001  // Blocks everything")
-    lines.append("#define ML_BLOCKMONSTERS 0x0002  // Blocks monsters only")
-    lines.append("#define ML_TWOSIDED      0x0004  // Backside will not be present if 0")
-    lines.append("")
-
     # Helper to format array
     def format_array(name, values, type_str, per_line=16):
         result = [f"const {type_str} {name}[] = {{"]
@@ -669,16 +498,7 @@ def generate_level_h(
 
         return seg_frontsector, seg_backsector
 
-    # Vertexes: 2 arrays
-    lines.append("// =============================================================================")
-    lines.append("// Vertex data (2 bytes per coordinate)")
-    lines.append("// =============================================================================")
-    lines.extend(format_array("vertex_x", [v["x"] for v in vertexes], "short"))
-    lines.append("")
-    lines.extend(format_array("vertex_y", [v["y"] for v in vertexes], "short"))
-    lines.append("")
-
-    # Sectors: 5 arrays
+    # Sectors: 3 arrays
     lines.append("// =============================================================================")
     lines.append("// Sector data")
     lines.append("// =============================================================================")
@@ -686,76 +506,29 @@ def generate_level_h(
     lines.append("")
     lines.extend(format_array("sector_ceiling", [s["ceilingheight"] for s in sectors], "short"))
     lines.append("")
-    lines.extend(format_array("sector_special", [s["special"] for s in sectors], "byte"))
-    lines.append("")
-    lines.extend(format_array("sector_tag", [s["tag"] for s in sectors], "short"))
-    lines.append("")
     lines.append("// Sector 3-coloring (vertex adjacency)")
     lines.append(f"// Generated with greedy+local search algorithm")
     lines.append(f"// Conflicts: {conflicts} (sectors sharing vertex with same color)")
-    lines.extend(format_array("sector_color", sector_colors, "byte"))
+    # Map color indices to fill bytes: 0→0x55 (dark), 1→0xAA (light), 2→0xFF (white)
+    fill_map = {0: "0x55", 1: "0xAA", 2: "0xFF"}
+    sector_fills = [fill_map[c] for c in sector_colors]
+    lines.extend(format_array("sector_color", sector_fills, "byte"))
     lines.append("")
 
-    # Linedefs: 7 arrays
-    lines.append("// =============================================================================")
-    lines.append("// Linedef data")
-    lines.append("// =============================================================================")
-    lines.extend(format_array("line_v1", [l["v1"] for l in linedefs], "short"))
-    lines.append("")
-    lines.extend(format_array("line_v2", [l["v2"] for l in linedefs], "short"))
-    lines.append("")
-    lines.extend(format_array("line_flags", [l["flags"] for l in linedefs], "short"))
-    lines.append("")
-    lines.extend(format_array("line_special", [l["special"] for l in linedefs], "short"))
-    lines.append("")
-    lines.extend(format_array("line_tag", [l["tag"] for l in linedefs], "short"))
-    lines.append("")
-    lines.extend(format_array("line_front", [l["frontside"] for l in linedefs], "short"))
-    lines.append("")
-    lines.extend(format_array("line_back", [l["backside"] for l in linedefs], "short"))
-    lines.append("")
-
-    # Line collision data (for P_CheckPosition)
-    lines.append("// Line collision data (precomputed for P_CheckPosition)")
-    lines.extend(format_array("line_dx", line_collision["dx"], "short"))
-    lines.append("")
-    lines.extend(format_array("line_dy", line_collision["dy"], "short"))
-    lines.append("")
-    lines.append("// Slope types: 0=horizontal, 1=vertical, 2=positive, 3=negative")
-    lines.extend(format_array("line_slopetype", line_collision["slopetype"], "byte"))
-    lines.append("")
-    lines.append("// Line bounding boxes (for AABB collision)")
-    lines.extend(format_array("line_bbox_left", line_collision["bbox_left"], "short"))
-    lines.append("")
-    lines.extend(format_array("line_bbox_right", line_collision["bbox_right"], "short"))
-    lines.append("")
-    lines.extend(format_array("line_bbox_top", line_collision["bbox_top"], "short"))
-    lines.append("")
-    lines.extend(format_array("line_bbox_bottom", line_collision["bbox_bottom"], "short"))
-    lines.append("")
-
-    # Sidedefs: 1 array (just sector index)
-    lines.append("// =============================================================================")
-    lines.append("// Sidedef data (only sector index for wireframe)")
-    lines.append("// =============================================================================")
-    lines.extend(format_array("side_sector", [s["sector"] for s in sidedefs], "short"))
-    lines.append("")
-
-    # Segs: 6 arrays
+    # Segs: 5 arrays (precomputed vertex coords + angle + 2 sector lookups)
     lines.append("// =============================================================================")
     lines.append("// Seg data")
     lines.append("// =============================================================================")
-    lines.extend(format_array("seg_v1", [s["v1"] for s in segs], "short"))
+    lines.append("// Precomputed vertex coordinates (eliminates vertex index indirection)")
+    lines.extend(format_array("seg_v1_x", [vertexes[s["v1"]]["x"] for s in segs], "short"))
     lines.append("")
-    lines.extend(format_array("seg_v2", [s["v2"] for s in segs], "short"))
+    lines.extend(format_array("seg_v1_y", [vertexes[s["v1"]]["y"] for s in segs], "short"))
+    lines.append("")
+    lines.extend(format_array("seg_v2_x", [vertexes[s["v2"]]["x"] for s in segs], "short"))
+    lines.append("")
+    lines.extend(format_array("seg_v2_y", [vertexes[s["v2"]]["y"] for s in segs], "short"))
     lines.append("")
     lines.extend(format_array("seg_angle", [s["angle"] for s in segs], "short"))
-    lines.append("")
-    lines.extend(format_array("seg_linedef", [s["linedef"] for s in segs], "short"))
-    lines.append("")
-    lines.extend(format_array("seg_side", [s["side"] for s in segs], "byte"))
-    lines.append("")
-    lines.extend(format_array("seg_offset", [s["offset"] for s in segs], "short"))
     lines.append("")
 
     # Seg→Sector precomputed lookups (always included)
@@ -821,39 +594,13 @@ def generate_level_h(
     lines.extend(format_array("node_child_l", [n["children"][1] for n in nodes], "short"))
     lines.append("")
 
-    # Blockmap data (for collision spatial partitioning)
-    lines.append("// =============================================================================")
-    lines.append("// Blockmap data (for collision detection)")
-    lines.append("// JDOOM Reference: LevelLoader.java:431-463")
-    lines.append("// =============================================================================")
-    lines.append("")
-    lines.append("// Blockmap origin (map units, convert to fixed: << FRACBITS)")
-    lines.append(f"#define BMAP_ORGX {blockmap_data['orgx']}")
-    lines.append(f"#define BMAP_ORGY {blockmap_data['orgy']}")
-    lines.append(f"#define BMAP_WIDTH {blockmap_data['width']}")
-    lines.append(f"#define BMAP_HEIGHT {blockmap_data['height']}")
-    lines.append("")
-    lines.append("// Block size: 128 map units")
-    lines.append("#define MAPBLOCKSHIFT 23  // FRACBITS + 7")
-    lines.append("#define MAPBLOCKUNITS 128")
-    lines.append("")
-    lines.append("// blockmap[y * BMAP_WIDTH + x] = offset into blockmaplump")
-    lines.extend(format_array("blockmap", blockmap_data["blockmap"], "short"))
-    lines.append("")
-    lines.append("// blockmaplump: line lists, each terminated by -1")
-    lines.append(f"#define BLOCKMAPLUMP_SIZE {len(blockmap_data['blockmaplump'])}")
-    lines.extend(format_array("blockmaplump", blockmap_data["blockmaplump"], "short"))
-    lines.append("")
-
     lines.append("#endif // LEVEL_H")
 
     return "\n".join(lines)
 
-
 # =============================================================================
 # Things Header Generation
 # =============================================================================
-
 
 def generate_things_h(things):
     """Generate data/e1m1_things.h with filtered E1M1 things."""
@@ -909,11 +656,9 @@ def generate_things_h(things):
 
     return "\n".join(lines)
 
-
 # =============================================================================
 # Main
 # =============================================================================
-
 
 def main():
     if len(sys.argv) < 2:
@@ -962,7 +707,6 @@ def main():
         segs = parse_segs(get_lump("SEGS"))
         subsectors = parse_subsectors(get_lump("SSECTORS"))
         nodes = parse_nodes(get_lump("NODES"))
-        blockmap_data = parse_blockmap(get_lump("BLOCKMAP"))
 
         print(f"  Things: {len(things)}")
         print(f"  Vertexes: {len(vertexes)}")
@@ -972,9 +716,6 @@ def main():
         print(f"  Segs: {len(segs)}")
         print(f"  Subsectors: {len(subsectors)}")
         print(f"  Nodes: {len(nodes)}")
-        print(
-            f"  Blockmap: {blockmap_data['width']}x{blockmap_data['height']} blocks, {len(blockmap_data['blockmaplump'])} shorts"
-        )
 
     # Resolve subsector sectors
     resolve_subsector_sectors(subsectors, segs, linedefs, sidedefs)
@@ -986,8 +727,6 @@ def main():
     else:
         print("  Warning: No player 1 start found")
 
-    # Compute line collision data
-    line_collision = compute_line_collision_data(linedefs, vertexes)
 
     # Generate sector 3-coloring (vertex adjacency)
     print("Generating sector 3-coloring...")
@@ -1011,8 +750,6 @@ def main():
         subsectors,
         nodes,
         player_start,
-        blockmap_data,
-        line_collision,
         sector_colors,
         conflicts,
     )
@@ -1040,39 +777,23 @@ def main():
     print(f"  File size: {things_size:,} bytes ({things_size / 1024:.1f} KB)")
 
     # Estimate memory usage
-    vertex_size = len(vertexes) * 4
-    sector_size = len(sectors) * 8
-    linedef_size = len(linedefs) * 14  # base data
-    line_collision_size = len(linedefs) * 11  # dx(2) + dy(2) + slopetype(1) + bbox(2*4)
-    sidedef_size = len(sidedefs) * 2
-    seg_size = len(segs) * 12
+    sector_size = len(sectors) * 6  # floor(2) + ceiling(2) + color(1) + pad
+    seg_size = len(segs) * 14  # v1x(2) + v1y(2) + v2x(2) + v2y(2) + angle(2) + frontsector(2) + backsector(2)
     subsector_size = len(subsectors) * 6
     node_size = len(nodes) * 28
-    blockmap_size = len(blockmap_data["blockmaplump"]) * 2
     total = (
-        vertex_size
-        + sector_size
-        + linedef_size
-        + line_collision_size
-        + sidedef_size
+        sector_size
         + seg_size
         + subsector_size
         + node_size
-        + blockmap_size
     )
 
     print(f"\nEstimated runtime memory:")
-    print(f"  Vertexes: {vertex_size:,} bytes")
     print(f"  Sectors: {sector_size:,} bytes")
-    print(f"  Linedefs: {linedef_size:,} bytes")
-    print(f"  Line collision: {line_collision_size:,} bytes")
-    print(f"  Sidedefs: {sidedef_size:,} bytes")
     print(f"  Segs: {seg_size:,} bytes")
     print(f"  Subsectors: {subsector_size:,} bytes")
     print(f"  Nodes: {node_size:,} bytes")
-    print(f"  Blockmap: {blockmap_size:,} bytes")
     print(f"  Total: {total:,} bytes ({total / 1024:.1f} KB)")
-
 
 if __name__ == "__main__":
     main()

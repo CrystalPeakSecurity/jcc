@@ -154,6 +154,16 @@ class Framebuffer:
         lines.append("+" + "-" * self.config.width + "+")
         return "\n".join(lines)
 
+    def render_hex(self) -> str:
+        """Render pixel values as hex digits (0-9A-F)."""
+        lines = []
+        for y in range(self.config.height):
+            row = ""
+            for x in range(self.config.width):
+                row += f"{self.pixel(x, y):X}"
+            lines.append(row)
+        return "\n".join(lines)
+
     def render_simple(self) -> str:
         """Render using simple block characters (no color)."""
         chars = " ░▒▓█"

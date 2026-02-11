@@ -1,0 +1,29 @@
+[package]
+name = "com/crystalpeak/rusty"
+aid = "A0000000620300F002"
+version = "1.0"
+
+[applet]
+aid = "A0000000620300F00201"
+class = "Applet"
+
+[options]
+javacard_version = "3.0.4"
+
+[build]
+command = "rustc --edition 2021 --crate-type=staticlib --target=wasm32-unknown-unknown -C opt-level=1 -C panic=abort -C debuginfo=2 --emit=llvm-ir -o build/lib.ll src/lib.rs"
+
+[driver]
+game_name = "Rusty"
+screen_width = 32
+screen_height = 20
+pixel_format = "1bpp"
+target_fps = 30
+input_mode = "direction"
+continuous_frames = true
+single_input = true
+controls_space = "Flap"
+palette = [
+    [8, 8, 8],
+    [255, 255, 255],
+]

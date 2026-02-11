@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Flappy Bird JavaCard driver.
-
-Commands:
-    load <cap>   Load applet onto simulator
-    render       Render single frame (--card for physical card)
-    play         Interactive play (--card for physical card)
-"""
+"""Flappy Bird JavaCard driver."""
 
 import sys
 from pathlib import Path
