@@ -9,7 +9,9 @@ git clone https://github.com/CrystalPeakSecurity/jcc.git
 cd jcc
 just setup              # guided setup (downloads JCDK, simulator)
 just check              # type checker + tests
-just sim examples/2048  # load a project in the simulator
+just sim examples/2048  # load a project in the simulator (stays running)
+
+# in another terminal:
 just run examples/2048  # runs a project's driver
 ```
 
