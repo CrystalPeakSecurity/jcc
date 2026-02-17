@@ -53,7 +53,6 @@ class DriverConfig:
 
     # Project paths
     demo_dir: Path = None
-    root_dir: Path = None
 
 
 def load_config(demo_dir: Path) -> DriverConfig:
@@ -95,16 +94,6 @@ def load_config(demo_dir: Path) -> DriverConfig:
             palette=palette,
         )
 
-    # Find root directory (examples/../)
-    root_dir = demo_dir.parent.parent
-    if not (root_dir / "src" / "jcc").exists():
-        # Fallback: search upward
-        root_dir = demo_dir
-        while root_dir.parent != root_dir:
-            if (root_dir / "src" / "jcc").exists():
-                break
-            root_dir = root_dir.parent
-
     # Controls config
     controls_extra_raw = driver.get("controls_extra", [])
     controls_extra = [(k, v) for k, v in controls_extra_raw] if controls_extra_raw else []
@@ -137,5 +126,4 @@ def load_config(demo_dir: Path) -> DriverConfig:
         background_image=background_image,
         controls=controls,
         demo_dir=demo_dir,
-        root_dir=root_dir,
     )

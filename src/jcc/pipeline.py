@@ -26,16 +26,19 @@ from jcc.output.config import ProjectConfig, load_config
 from jcc.output.generate import generate_output
 
 
+def _data_dir() -> Path:
+    """Return the path to bundled package data."""
+    return Path(__file__).parent / "data"
+
+
 def build_project(
     path: Path,
-    jcc_root: Path | None = None,
     llvm_root: Path | None = None,
 ) -> Path:
     """Build a project from jcc.toml to CAP file.
 
     Args:
         path: Project directory or path to jcc.toml file.
-        jcc_root: Project root for include paths (for $JCC_ROOT in build commands).
         llvm_root: LLVM installation directory (for opt passes).
 
     Returns:
@@ -55,14 +58,14 @@ def build_project(
     # 2. Run frontend command (if specified)
     if config.build_command:
         resolved_llvm_root = llvm_root or find_llvm_root()
-        run_frontend(config.build_command, project_dir, jcc_root, resolved_llvm_root)
+        run_frontend(config.build_command, project_dir, resolved_llvm_root)
 
     # 3. Find .ll file
     ll_path = find_ll_file(config, build_dir)
 
     # 3b. Run range analysis annotation (if plugin available)
     resolved_llvm_root_for_opt = llvm_root or find_llvm_root()
-    run_opt_annotate(ll_path, jcc_root, resolved_llvm_root_for_opt)
+    run_opt_annotate(ll_path, resolved_llvm_root_for_opt)
 
     # 4. Resolve JCDK
     jcdk = get_jcdk(config.javacard_version)
@@ -99,8 +102,7 @@ def build_project(
         allocation.mem_sizes.get(MemArray.MEM_I, 0) > 0 or _module_uses_int(module)
     ):
         # intx only available in JavaCard 3.0.4+
-        intx_path = jcdk.export_dir / "javacardx" / "framework" / "util" / "intx"
-        if intx_path.exists():
+        if jcdk.has_package("javacardx.framework.util.intx"):
             packages.append("javacardx.framework.util.intx")
     if config.extended_apdu:
         packages.append("javacardx.apdu")
@@ -142,21 +144,15 @@ def _module_uses_int(module: Module) -> bool:
 
 def run_opt_annotate(
     ll_path: Path,
-    jcc_root: Path | None,
     llvm_root: Path,
 ) -> None:
     """Run the jcc_annotate opt plugin to add range metadata.
 
     Silently skips if the plugin .so or opt binary is not found.
     """
-    # Look for plugin relative to jcc_root
-    plugin_path = None
-    if jcc_root:
-        candidate = jcc_root / "tools" / "llvm" / "jcc_annotate.so"
-        if candidate.exists():
-            plugin_path = candidate
-
-    if plugin_path is None:
+    # Look for plugin in package data
+    plugin_path = _data_dir() / "llvm" / "jcc_annotate.so"
+    if not plugin_path.exists():
         return
 
     # Find opt binary: try llvm_root first, then common homebrew path
@@ -250,7 +246,6 @@ def find_ll_file(config: ProjectConfig, build_dir: Path) -> Path:
 def run_frontend(
     command: str,
     cwd: Path,
-    jcc_root: Path | None,
     llvm_root: Path,
 ) -> None:
     """Run the frontend build command.
@@ -258,7 +253,6 @@ def run_frontend(
     Args:
         command: Build command from jcc.toml.
         cwd: Working directory (project directory).
-        jcc_root: Value for $JCC_ROOT environment variable.
         llvm_root: LLVM root for PATH.
 
     Raises:
@@ -266,8 +260,8 @@ def run_frontend(
     """
     # Build environment
     env = os.environ.copy()
-    if jcc_root:
-        env["JCC_ROOT"] = str(jcc_root)
+    jcc_root = _data_dir()
+    env["JCC_ROOT"] = str(jcc_root)
 
     # Add LLVM bin to PATH
     llvm_bin = llvm_root / "bin"
@@ -278,11 +272,9 @@ def run_frontend(
     build_dir = cwd / "build"
     build_dir.mkdir(exist_ok=True)
 
-    # Expand environment variables in command
-    expanded_command = os.path.expandvars(command)
-    # Also expand using our custom env (for JCC_ROOT) - use absolute path
-    if jcc_root:
-        expanded_command = expanded_command.replace("$JCC_ROOT", str(jcc_root.resolve()))
+    # Expand $JCC_ROOT in command
+    expanded_command = command.replace("$JCC_ROOT", str(jcc_root.resolve()))
+    expanded_command = os.path.expandvars(expanded_command)
 
     # Run command
     result = subprocess.run(

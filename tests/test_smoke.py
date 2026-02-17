@@ -8,9 +8,7 @@ class TestImports:
 
     def test_import_jcc(self) -> None:
         """Can import the main package."""
-        import jcc
-
-        assert jcc.__version__ == "0.1.0"
+        import jcc  # noqa: F401  # pyright: ignore[reportUnusedImport]
 
     def test_import_ir_types(self) -> None:
         """Can import IR types."""

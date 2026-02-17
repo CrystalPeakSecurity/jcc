@@ -11,16 +11,9 @@ Compiles LLVM IR to JavaCard bytecode (CAP files). Any language with an LLVM fro
 ```bash
 git clone <repo>
 cd jcc
+just setup      # Guided setup (installs deps, downloads SDKs)
 just check      # Run type checker and tests
 ```
-
-## Requirements
-
-- Python 3.12+ and [uv](https://docs.astral.sh/uv/)
-- [LLVM/Clang](https://llvm.org/) (for compiling C to LLVM IR)
-- Java 17+
-- [Oracle JavaCard SDK](https://www.oracle.com/java/technologies/javacard-downloads.html) - extract to `etc/jcdk/`
-- [Oracle JavaCard Simulator](https://www.oracle.com/java/technologies/javacard-downloads.html) (optional) - extract to `etc/jcdk-sim/`
 
 ## Usage
 
@@ -72,7 +65,7 @@ just build examples/wolf3d      # Wolfenstein 3D
 - `include/jcc.h` - C header with APDU functions
 - `tools/` - CAP file analysis utilities
 - `corpus/` - LLVM IR test fixtures
-- `etc/` - External tools (SDK, simulator, GlobalPlatformPro)
+
 
 ## License
 

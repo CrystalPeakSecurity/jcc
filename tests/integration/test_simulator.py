@@ -9,51 +9,25 @@ from pathlib import Path
 from .helpers import build_example, load_applet
 
 
-def test_minimal_loads(
-    simulator: None,
-    examples_dir: Path,
-    jcc_root: Path,
-) -> None:
+def test_minimal_loads(simulator: None, examples_dir: Path) -> None:
     """Test loading minimal example onto simulator."""
-    cap_path = build_example(examples_dir / "minimal", jcc_root)
-    load_applet(cap_path, examples_dir / "minimal" / "jcc.toml", jcc_root)
+    cap_path = build_example(examples_dir / "minimal")
+    load_applet(cap_path, examples_dir / "minimal" / "jcc.toml")
 
 
-def test_minimal_loop_loads(
-    simulator: None,
-    examples_dir: Path,
-    jcc_root: Path,
-) -> None:
-    """Test loading minimal_loop example onto simulator."""
-    cap_path = build_example(examples_dir / "minimal_loop", jcc_root)
-    load_applet(cap_path, examples_dir / "minimal_loop" / "jcc.toml", jcc_root)
-
-
-def test_correctness_loads(
-    simulator: None,
-    examples_dir: Path,
-    jcc_root: Path,
-) -> None:
+def test_correctness_loads(simulator: None, examples_dir: Path) -> None:
     """Test loading correctness example onto simulator."""
-    cap_path = build_example(examples_dir / "correctness", jcc_root)
-    load_applet(cap_path, examples_dir / "correctness" / "jcc.toml", jcc_root)
+    cap_path = build_example(examples_dir / "correctness")
+    load_applet(cap_path, examples_dir / "correctness" / "jcc.toml")
 
 
-def test_rusty_loads(
-    simulator: None,
-    examples_dir: Path,
-    jcc_root: Path,
-) -> None:
+def test_rusty_loads(simulator: None, examples_dir: Path) -> None:
     """Test loading rusty example onto simulator."""
-    cap_path = build_example(examples_dir / "rusty", jcc_root)
-    load_applet(cap_path, examples_dir / "rusty" / "jcc.toml", jcc_root)
+    cap_path = build_example(examples_dir / "rusty")
+    load_applet(cap_path, examples_dir / "rusty" / "jcc.toml")
 
 
-def test_2048_loads(
-    simulator: None,
-    examples_dir: Path,
-    jcc_root: Path,
-) -> None:
+def test_2048_loads(simulator: None, examples_dir: Path) -> None:
     """Test loading 2048 example onto simulator."""
-    cap_path = build_example(examples_dir / "2048", jcc_root)
-    load_applet(cap_path, examples_dir / "2048" / "jcc.toml", jcc_root)
+    cap_path = build_example(examples_dir / "2048")
+    load_applet(cap_path, examples_dir / "2048" / "jcc.toml")

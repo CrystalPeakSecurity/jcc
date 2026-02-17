@@ -1,9 +1,9 @@
 [project]
 name = "jcc"
-version = "2.0.0"
+version = "2.0.1"
 description = "LLVM IR to JavaCard bytecode compiler"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "llvmlite>=0.43.0",
     "cyclopts>=3.0",
@@ -18,7 +18,6 @@ dev = [
     "ruff>=0.14.14",
 ]
 driver = [
-    "blessed>=1.20",
     "pyscard>=2.0",
     "pillow>=10.0",
 ]
@@ -49,7 +48,7 @@ dev = [
 ]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 line-length = 100
 
 [tool.ruff.format]

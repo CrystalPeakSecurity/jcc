@@ -26,15 +26,12 @@ wheels/
 Thumbs.db
 *~
 
-# Dependencies (downloaded SDKs)
-etc/jcdk/
-etc/jcdk-sim/
-etc/gp/
 
 # Build artifacts
 examples/*/build/
 *.cap
 *.class
+!src/jcc/data/**/*.class
 *.report.txt
 
 # Debug/temp

@@ -8,8 +8,9 @@ import os
 import socket
 import subprocess
 import sys
-from pathlib import Path
 from typing import Protocol, Self
+
+from jcc.jcdk import config_dir, sim_client_cmd
 
 
 class Session(Protocol):
@@ -35,32 +36,20 @@ class Session(Protocol):
 class SimSession:
     """Simulator session via JCCClient subprocess (JSON protocol)."""
 
-    def __init__(self, applet_aid: str, root_dir: Path = None):
+    def __init__(self, applet_aid: str):
         """
         Create a simulator session.
 
         Args:
             applet_aid: The applet AID (hex string)
-            root_dir: Project root directory (auto-detected if None)
         """
-        if root_dir is None:
-            # Auto-detect: look for project root from current location
-            root_dir = Path(__file__).parent.parent.parent
-
-        client_cp = (
-            f"{root_dir}/etc/jcdk-sim/client/COMService/socketprovider.jar:"
-            f"{root_dir}/etc/jcdk-sim/client/AMService/amservice.jar"
-        )
-        client_dir = root_dir / "etc/jcdk-sim-client"
-
-        cmd = ["java", "-cp", f"{client_cp}:{client_dir}", "JCCClient", "session", applet_aid]
+        cmd = sim_client_cmd("session", applet_aid)
         self.proc = subprocess.Popen(
             cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
-            cwd=root_dir,
         )
 
         # Wait for ready signal
@@ -250,7 +239,6 @@ def daemon_is_running(socket_path: str = "/tmp/jcc-session.sock") -> bool:
 def get_session(
     applet_aid: str,
     backend: str = None,
-    root_dir: Path = None,
     daemon_socket: str = None,
 ) -> Session:
     """
@@ -259,7 +247,6 @@ def get_session(
     Args:
         applet_aid: The applet AID (hex string)
         backend: Backend type - "sim", "card", "daemon", or None (auto-detect)
-        root_dir: Project root directory (for simulator)
         daemon_socket: Path to daemon socket (for daemon backend)
 
     Returns:
@@ -274,20 +261,20 @@ def get_session(
     elif backend == "daemon":
         return DaemonSession(daemon_socket)
     elif backend == "sim":
-        return SimSession(applet_aid, root_dir)
+        return SimSession(applet_aid)
     else:
         # Auto-detect
         socket_path = daemon_socket or "/tmp/jcc-session.sock"
         if daemon_is_running(socket_path):
             return DaemonSession(socket_path)
-        return SimSession(applet_aid, root_dir)
+        return SimSession(applet_aid)
 
 
 def load_applet(
     cap_path: str,
     pkg_aid: str,
     applet_aid: str,
-    root_dir: Path = None,
+    port: int = None,
 ) -> None:
     """
     Load an applet onto the simulator.
@@ -296,48 +283,28 @@ def load_applet(
         cap_path: Path to the CAP file
         pkg_aid: Package AID (hex string)
         applet_aid: Applet AID (hex string)
-        root_dir: Project root directory
+        port: Simulator port (default: JCCClient's default of 9025)
     """
-    if root_dir is None:
-        root_dir = Path(__file__).parent.parent.parent
-
-    client_cp = (
-        f"{root_dir}/etc/jcdk-sim/client/COMService/socketprovider.jar:"
-        f"{root_dir}/etc/jcdk-sim/client/AMService/amservice.jar"
-    )
-    client_dir = root_dir / "etc/jcdk-sim-client"
-
-    cmd = [
-        "java",
-        "-cp",
-        f"{client_cp}:{client_dir}",
-        "JCCClient",
-        "load",
-        cap_path,
-        pkg_aid,
-        applet_aid,
-        applet_aid,
-    ]
-    result = subprocess.run(cmd, cwd=root_dir)
+    cmd = [*sim_client_cmd("load"), cap_path, pkg_aid, applet_aid, applet_aid]
+    env = None
+    if port is not None:
+        env = os.environ.copy()
+        env["SIM_PORT"] = str(port)
+    result = subprocess.run(cmd, capture_output=True, text=True, env=env)
     if result.returncode != 0:
-        raise RuntimeError(f"Failed to load applet (exit code {result.returncode})")
+        raise RuntimeError(f"Failed to load applet:\n{result.stdout}\n{result.stderr}")
 
 
 def load_applet_card(
     cap_path: str,
-    root_dir: Path = None,
 ) -> None:
     """
     Load an applet onto a real card via GlobalPlatformPro.
 
     Args:
         cap_path: Path to the CAP file
-        root_dir: Project root directory
     """
-    if root_dir is None:
-        root_dir = Path(__file__).parent.parent.parent
-
-    gp_jar = root_dir / "etc/gp/gp.jar"
+    gp_jar = config_dir() / "gp" / "gp.jar"
     if not gp_jar.exists():
         raise FileNotFoundError(f"gp.jar not found at {gp_jar}")
 
@@ -350,27 +317,9 @@ def load_applet_card(
 def unload_applet(
     pkg_aid: str,
     applet_aid: str,
-    root_dir: Path = None,
 ) -> None:
     """Uninstall and unload an applet from the simulator."""
-    if root_dir is None:
-        root_dir = Path(__file__).parent.parent.parent
-
-    client_cp = (
-        f"{root_dir}/etc/jcdk-sim/client/COMService/socketprovider.jar:"
-        f"{root_dir}/etc/jcdk-sim/client/AMService/amservice.jar"
-    )
-    client_dir = root_dir / "etc/jcdk-sim-client"
-
-    cmd = [
-        "java",
-        "-cp",
-        f"{client_cp}:{client_dir}",
-        "JCCClient",
-        "unload",
-        pkg_aid,
-        applet_aid,
-    ]
-    result = subprocess.run(cmd, cwd=root_dir)
+    cmd = [*sim_client_cmd("unload"), pkg_aid, applet_aid]
+    result = subprocess.run(cmd)
     if result.returncode != 0:
         raise RuntimeError(f"Failed to unload applet (exit code {result.returncode})")

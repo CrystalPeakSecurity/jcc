@@ -19,13 +19,9 @@ except ImportError:
     Image = None
 
 # Paths (driver.py is at examples/wolf3d/tools/)
+from jcc.jcdk import config_dir, sim_client_cmd
+
 ROOT = Path(__file__).parent.parent.parent.parent
-JC_HOME = ROOT / "etc/jcdk"
-CLIENT_CP = (
-    f"{ROOT}/etc/jcdk-sim/client/COMService/socketprovider.jar:"
-    f"{ROOT}/etc/jcdk-sim/client/AMService/amservice.jar"
-)
-CLIENT_DIR = ROOT / "etc/jcdk-sim-client"
 
 # Load AIDs from jcc.toml
 CONFIG_PATH = Path(__file__).parent.parent / "jcc.toml"
@@ -76,7 +72,7 @@ class CardSession:
         self._start()
 
     def _start(self):
-        cmd = ["java", "-cp", f"{CLIENT_CP}:{CLIENT_DIR}", "JCCClient", "session", self.aid]
+        cmd = sim_client_cmd("session", self.aid)
         self.process = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=ROOT
         )
@@ -242,17 +238,14 @@ def _build_input_data(forward, strafe, turn):
 
 
 def load_applet(jar_path: str):
-    cmd = [
-        "java", "-cp", f"{CLIENT_CP}:{CLIENT_DIR}", "JCCClient",
-        "load", jar_path, PKG_AID, APPLET_AID, APPLET_AID,
-    ]
+    cmd = sim_client_cmd("load", jar_path, PKG_AID, APPLET_AID, APPLET_AID)
     result = subprocess.run(cmd, cwd=ROOT)
     if result.returncode != 0:
         sys.exit(1)
 
 
 def load_applet_card(cap_path: str):
-    gp_jar = ROOT / "etc/gp/gp.jar"
+    gp_jar = config_dir() / "gp/gp.jar"
     if not gp_jar.exists():
         raise FileNotFoundError(f"gp.jar not found at {gp_jar}")
     cmd = ["java", "-jar", str(gp_jar), "--force", "--install", str(cap_path)]
@@ -262,10 +255,7 @@ def load_applet_card(cap_path: str):
 
 
 def unload_applet():
-    cmd = [
-        "java", "-cp", f"{CLIENT_CP}:{CLIENT_DIR}", "JCCClient",
-        "unload", PKG_AID, APPLET_AID,
-    ]
+    cmd = sim_client_cmd("unload", PKG_AID, APPLET_AID)
     result = subprocess.run(cmd, cwd=ROOT)
     if result.returncode != 0:
         sys.exit(1)

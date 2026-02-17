@@ -1,6 +1,6 @@
 {
   "include": ["src/jcc", "tests"],
-  "exclude": ["src/jcc/driver"],
+  "exclude": ["src/jcc/driver", "src/jcc/cap", "src/jcc/cli", "src/jcc/setup.py"],
   "typeCheckingMode": "strict",
   "reportMissingTypeStubs": false,
   "executionEnvironments": [

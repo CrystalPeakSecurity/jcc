@@ -20,11 +20,9 @@ except ImportError:
     import tomli as tomllib
 
 # Paths
+from jcc.jcdk import sim_client_cmd
+
 ROOT = Path(__file__).parent.parent.parent.parent
-CLIENT_CP = (
-    f"{ROOT}/etc/jcdk-sim/client/COMService/socketprovider.jar:{ROOT}/etc/jcdk-sim/client/AMService/amservice.jar"
-)
-CLIENT_DIR = ROOT / "etc/jcdk-sim-client"
 
 # Load AIDs from jcc.toml
 CONFIG_PATH = Path(__file__).parent.parent / "jcc.toml"
@@ -78,7 +76,7 @@ def build_apdu(ins: int, p1: int = 0, p2: int = 0, data: bytes = None, ne: int =
 
 class SimSession:
     def __init__(self):
-        cmd = ["java", "-cp", f"{CLIENT_CP}:{CLIENT_DIR}", "JCCClient", "session", APPLET_AID]
+        cmd = sim_client_cmd("session", APPLET_AID)
         self.proc = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=ROOT
         )
@@ -148,7 +146,7 @@ class CardSession:
 
 
 def cmd_load(jar_path: str):
-    cmd = ["java", "-cp", f"{CLIENT_CP}:{CLIENT_DIR}", "JCCClient", "load", jar_path, PKG_AID, APPLET_AID, APPLET_AID]
+    cmd = sim_client_cmd("load", jar_path, PKG_AID, APPLET_AID, APPLET_AID)
     sys.exit(subprocess.run(cmd, cwd=ROOT).returncode)
 
 

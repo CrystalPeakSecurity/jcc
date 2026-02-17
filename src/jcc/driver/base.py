@@ -36,7 +36,6 @@ class BaseDriver:
         """
         self.demo_dir = Path(demo_dir)
         self.config = load_config(self.demo_dir)
-        self.root_dir = self.config.root_dir
 
     # --- Session Management ---
 
@@ -53,7 +52,6 @@ class BaseDriver:
         return get_session(
             applet_aid=self.config.applet_aid,
             backend=backend,
-            root_dir=self.root_dir,
             daemon_socket=self.config.daemon_socket,
         )
 
@@ -65,22 +63,17 @@ class BaseDriver:
             cap_path=jar_path,
             pkg_aid=self.config.pkg_aid,
             applet_aid=self.config.applet_aid,
-            root_dir=self.root_dir,
         )
 
     def cmd_load_card(self, jar_path: str) -> None:
         """Load applet onto real card via GlobalPlatformPro."""
-        load_applet_card(
-            cap_path=jar_path,
-            root_dir=self.root_dir,
-        )
+        load_applet_card(cap_path=jar_path)
 
     def cmd_unload(self) -> None:
         """Uninstall and unload applet from simulator."""
         unload_applet(
             pkg_aid=self.config.pkg_aid,
             applet_aid=self.config.applet_aid,
-            root_dir=self.root_dir,
         )
 
     def cmd_render(self, backend: str = None, frame: int = 0, hex_mode: bool = False) -> None:

@@ -1,24 +1,23 @@
 """Test helpers for integration tests."""
 
-import os
 import subprocess
 import sys
 import tomllib
 from pathlib import Path
 
-JCC_ROOT = Path(__file__).parent.parent.parent
-VERIFY_CAP = JCC_ROOT / "tools" / "verify_cap.py"
+from jcc.driver.session import load_applet as _session_load_applet
+
+from .conftest import SIM_PORT
 
 # Cache of built examples: example_dir -> cap_path
 _build_cache: dict[Path, Path] = {}
 
 
-def build_example(example_dir: Path, jcc_root: Path | None = None) -> Path:
+def build_example(example_dir: Path) -> Path:
     """Build an example, return CAP path. Cached per session.
 
     Args:
         example_dir: Path to example directory containing jcc.toml.
-        jcc_root: Optional override for JCC_ROOT.
 
     Returns:
         Path to the generated CAP file.
@@ -31,17 +30,8 @@ def build_example(example_dir: Path, jcc_root: Path | None = None) -> Path:
     if example_dir in _build_cache:
         return _build_cache[example_dir]
 
-    root = jcc_root or JCC_ROOT
-
     result = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "jcc",
-            str(example_dir),
-            "--jcc-root",
-            str(root),
-        ],
+        [sys.executable, "-m", "jcc", str(example_dir)],
         capture_output=True,
         text=True,
     )
@@ -59,7 +49,7 @@ def build_example(example_dir: Path, jcc_root: Path | None = None) -> Path:
 
 
 def verify_cap(cap_path: Path) -> None:
-    """Run verify_cap.py on a CAP file.
+    """Run custom bytecode verifier on a CAP file.
 
     Args:
         cap_path: Path to CAP file.
@@ -67,25 +57,39 @@ def verify_cap(cap_path: Path) -> None:
     Raises:
         RuntimeError: If verification fails.
     """
+    from jcc.cap.parse import parse_cap  # pyright: ignore[reportUnknownVariableType]
+    from jcc.cap.verify import verify_method  # pyright: ignore[reportUnknownVariableType]
+    from jcc.cap.jca_map import parse_jca_file, find_method_map  # pyright: ignore[reportUnknownVariableType]
+
+    cap = parse_cap(cap_path)
+
     jca_path = cap_path.with_suffix(".jca")
+    jca_maps = {}
+    if jca_path.exists():
+        jca_maps = parse_jca_file(jca_path)
 
-    result = subprocess.run(
-        [sys.executable, str(VERIFY_CAP), str(cap_path), "--jca", str(jca_path)],
-        capture_output=True,
-        text=True,
-    )
+    if not cap.method:
+        return
 
-    if result.returncode != 0:
-        raise RuntimeError(f"Verification failed:\n{result.stdout}\n{result.stderr}")
+    errors: list[str] = []
+    for method in cap.method.methods:
+        jca_map = find_method_map(jca_maps, method.bytecode)
+        result = verify_method(
+            method, cap.constant_pool, cap.descriptor, jca_map,
+        )
+        if not result.success:
+            errors.append(f"Method {method.index}: {result.errors}")
+
+    if errors:
+        raise RuntimeError(f"Verification failed:\n" + "\n".join(errors))
 
 
-def load_applet(cap_path: Path, config_path: Path, jcc_root: Path) -> None:
-    """Load applet onto simulator using JavaBridge.
+def load_applet(cap_path: Path, config_path: Path) -> None:
+    """Load applet onto simulator.
 
     Args:
         cap_path: Path to CAP file.
         config_path: Path to jcc.toml.
-        jcc_root: Path to jcc project root.
 
     Raises:
         RuntimeError: If loading fails.
@@ -93,75 +97,7 @@ def load_applet(cap_path: Path, config_path: Path, jcc_root: Path) -> None:
     with open(config_path, "rb") as f:
         config = tomllib.load(f)
 
-    pkg_aid = bytes.fromhex(config["package"]["aid"])
-    app_aid = bytes.fromhex(config["applet"]["aid"])
+    pkg_aid = config["package"]["aid"]
+    app_aid = config["applet"]["aid"]
 
-    bridge = JavaBridge(jcc_root)
-    bridge.load_applet(cap_path, pkg_aid, app_aid, app_aid)
-
-
-class JavaBridge:
-    """Bridge to JCCClient.java for simulator operations."""
-
-    def __init__(
-        self,
-        project_root: Path,
-        host: str = "localhost",
-        port: int = 9026,
-    ) -> None:
-        self.project_root = project_root
-        self.host = host
-        self.port = port
-        self.sim_client_dir = project_root / "etc" / "jcdk-sim-client"
-        self.jcdk_sim_dir = project_root / "etc" / "jcdk-sim"
-
-    def _get_classpath(self) -> str:
-        paths = [
-            self.sim_client_dir,
-            self.jcdk_sim_dir / "client" / "COMService" / "socketprovider.jar",
-            self.jcdk_sim_dir / "client" / "AMService" / "amservice.jar",
-        ]
-        return os.pathsep.join(str(p) for p in paths if p.exists())
-
-    def load_applet(
-        self,
-        cap_file: Path,
-        package_aid: bytes,
-        class_aid: bytes,
-        instance_aid: bytes,
-    ) -> None:
-        """Load and install an applet.
-
-        Args:
-            cap_file: Path to CAP file.
-            package_aid: Package AID bytes.
-            class_aid: Class AID bytes.
-            instance_aid: Instance AID bytes.
-
-        Raises:
-            RuntimeError: If loading fails.
-        """
-        env = os.environ.copy()
-        env["SIM_PORT"] = str(self.port)
-
-        result = subprocess.run(
-            [
-                "java",
-                "-cp",
-                self._get_classpath(),
-                "JCCClient",
-                "load",
-                str(cap_file),
-                package_aid.hex().upper(),
-                class_aid.hex().upper(),
-                instance_aid.hex().upper(),
-            ],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            cwd=self.sim_client_dir,
-            env=env,
-        )
-
-        if result.returncode != 0:
-            raise RuntimeError(f"Failed to load applet:\n{result.stdout}\n{result.stderr}")
+    _session_load_applet(str(cap_path), pkg_aid, app_aid, port=SIM_PORT)

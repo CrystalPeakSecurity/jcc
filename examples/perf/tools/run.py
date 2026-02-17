@@ -185,7 +185,7 @@ def main():
     results = []
     baseline_ms = 0
 
-    with get_session(config.applet_aid, backend=backend, root_dir=config.root_dir) as session:
+    with get_session(config.applet_aid, backend=backend) as session:
         # Warmup: send a few noop APDUs to stabilize JVM/simulator timing
         warmup_apdu = build_apdu(0x00, 1)
         for _ in range(3):

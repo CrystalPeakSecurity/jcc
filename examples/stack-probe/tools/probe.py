@@ -120,7 +120,7 @@ def main():
     print(f"Backend: {'card' if args.card else 'simulator'}")
     print("=" * 50)
 
-    with get_session(config.applet_aid, backend=backend, root_dir=root_dir) as session:
+    with get_session(config.applet_aid, backend=backend) as session:
         if args.slots:
             results = probe_specific(session, args.slots)
             successes = [s for s, ok in results.items() if ok]

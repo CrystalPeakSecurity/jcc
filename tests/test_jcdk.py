@@ -2,12 +2,22 @@
 
 import os
 import tempfile
+import zipfile
 from pathlib import Path
 from unittest import mock
 
 import pytest
 
 from jcc.jcdk import JCDKError, JCDKPaths, get_jcdk, _find_jc_home, _find_tool
+
+
+def _make_tools_jar(jc_home: Path, versions: list[str]) -> None:
+    """Create a fake tools.jar with empty export files for the given versions."""
+    lib_dir = jc_home / "lib"
+    lib_dir.mkdir(exist_ok=True)
+    with zipfile.ZipFile(lib_dir / "tools.jar", "w") as zf:
+        for version in versions:
+            zf.writestr(f"api_export_files_{version}/javacard/framework/javacard/framework.exp", b"")
 
 
 class TestFindJcHome:
@@ -35,7 +45,7 @@ class TestFindJcHome:
             with mock.patch.dict(os.environ, env, clear=True):
                 # Mock to ensure bundled path doesn't exist
                 with mock.patch.object(Path, "exists", return_value=False):
-                    with pytest.raises(JCDKError, match="not found"):
+                    with pytest.raises(JCDKError, match="not found|just setup"):
                         _find_jc_home()
 
 
@@ -112,8 +122,7 @@ class TestGetJcdk:
             (bin_dir / "verifycap.sh").touch()
             (bin_dir / "exp2text.sh").touch()
 
-            export_dir = jc_home / "api_export_files" / "api_export_files_3.0.4"
-            export_dir.mkdir(parents=True)
+            _make_tools_jar(jc_home, ["3.0.4"])
 
             with mock.patch.dict(os.environ, {"JC_HOME": tmpdir, "JAVA_HOME": tmpdir}):
                 result = get_jcdk("3.0.4")
@@ -125,20 +134,37 @@ class TestGetJcdk:
             assert result.exp2text.exists()
             assert result.export_dir.exists()
 
-    def test_uses_version_as_is(self) -> None:
-        """Uses version string directly (dots preserved)."""
+    def test_extracts_to_versions_dir(self) -> None:
+        """Extracts export files into jc_home/versions/."""
         with tempfile.TemporaryDirectory() as tmpdir:
             jc_home = Path(tmpdir)
 
-            # Set up directory structure
             bin_dir = jc_home / "bin"
             bin_dir.mkdir()
             (bin_dir / "capgen.sh").touch()
             (bin_dir / "verifycap.sh").touch()
             (bin_dir / "exp2text.sh").touch()
 
-            # Version string used as-is (with dots)
-            export_dir = jc_home / "api_export_files" / "api_export_files_3.0.4"
+            _make_tools_jar(jc_home, ["3.0.4"])
+
+            with mock.patch.dict(os.environ, {"JC_HOME": tmpdir, "JAVA_HOME": tmpdir}):
+                result = get_jcdk("3.0.4")
+
+            assert result.export_dir == jc_home / "versions" / "api_export_files_3.0.4"
+
+    def test_skips_extraction_when_already_on_disk(self) -> None:
+        """Uses existing versions/ directory without touching tools.jar."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jc_home = Path(tmpdir)
+
+            bin_dir = jc_home / "bin"
+            bin_dir.mkdir()
+            (bin_dir / "capgen.sh").touch()
+            (bin_dir / "verifycap.sh").touch()
+            (bin_dir / "exp2text.sh").touch()
+
+            # Pre-populate versions/ — no tools.jar needed
+            export_dir = jc_home / "versions" / "api_export_files_3.0.4"
             export_dir.mkdir(parents=True)
 
             with mock.patch.dict(os.environ, {"JC_HOME": tmpdir, "JAVA_HOME": tmpdir}):
@@ -151,16 +177,67 @@ class TestGetJcdk:
         with tempfile.TemporaryDirectory() as tmpdir:
             jc_home = Path(tmpdir)
 
-            # Set up bin directory but not export files
             bin_dir = jc_home / "bin"
             bin_dir.mkdir()
             (bin_dir / "capgen.sh").touch()
             (bin_dir / "verifycap.sh").touch()
             (bin_dir / "exp2text.sh").touch()
 
-            with mock.patch.dict(os.environ, {"JC_HOME": tmpdir}):
+            _make_tools_jar(jc_home, ["3.0.4"])
+
+            with mock.patch.dict(os.environ, {"JC_HOME": tmpdir, "JAVA_HOME": tmpdir}):
                 with pytest.raises(JCDKError, match="Export files"):
                     get_jcdk("3.2.0")
+
+    def test_missing_tools_jar(self) -> None:
+        """Raises error when tools.jar doesn't exist and no versions/ on disk."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            jc_home = Path(tmpdir)
+
+            bin_dir = jc_home / "bin"
+            bin_dir.mkdir()
+            (bin_dir / "capgen.sh").touch()
+            (bin_dir / "verifycap.sh").touch()
+            (bin_dir / "exp2text.sh").touch()
+
+            with mock.patch.dict(os.environ, {"JC_HOME": tmpdir, "JAVA_HOME": tmpdir}):
+                with pytest.raises(JCDKError, match="tools.jar"):
+                    get_jcdk("3.0.4")
+
+
+class TestHasPackage:
+    """Tests for JCDKPaths.has_package()."""
+
+    def test_package_exists(self) -> None:
+        """Returns True when package directory exists."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            export_dir = Path(tmpdir)
+            (export_dir / "javacardx" / "framework" / "util" / "intx").mkdir(parents=True)
+
+            paths = JCDKPaths(
+                jc_home=Path("/jcdk"),
+                java_home=Path("/java"),
+                capgen=Path("/jcdk/bin/capgen"),
+                verifycap=Path("/jcdk/bin/verifycap"),
+                exp2text=Path("/jcdk/bin/exp2text"),
+                export_dir=export_dir,
+            )
+
+            assert paths.has_package("javacardx.framework.util.intx") is True
+
+    def test_package_missing(self) -> None:
+        """Returns False when package directory doesn't exist."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            paths = JCDKPaths(
+                jc_home=Path("/jcdk"),
+                java_home=Path("/java"),
+                capgen=Path("/jcdk/bin/capgen"),
+                verifycap=Path("/jcdk/bin/verifycap"),
+                exp2text=Path("/jcdk/bin/exp2text"),
+                export_dir=Path(tmpdir),
+            )
+
+            assert paths.has_package("javacardx.framework.util.intx") is False
 
 
 class TestJCDKPathsDataclass:

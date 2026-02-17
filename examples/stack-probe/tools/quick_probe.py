@@ -5,11 +5,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+from jcc.jcdk import sim_client_cmd
+
 ROOT = Path(__file__).parent.parent.parent.parent
-CLIENT_CP = (
-    f"{ROOT}/etc/jcdk-sim/client/COMService/socketprovider.jar:{ROOT}/etc/jcdk-sim/client/AMService/amservice.jar"
-)
-CLIENT_DIR = ROOT / "etc/jcdk-sim-client"
 AID = "DA43B630ED9302AABB0101"
 
 SLOTS = [1, 2, 3, 5, 7, 11, 15, 23, 31, 47, 63, 95, 127, 191, 255]
@@ -17,7 +15,7 @@ SLOTS = [1, 2, 3, 5, 7, 11, 15, 23, 31, 47, 63, 95, 127, 191, 255]
 
 class Session:
     def __init__(self):
-        cmd = ["java", "-cp", f"{CLIENT_CP}:{CLIENT_DIR}", "JCCClient", "session", AID]
+        cmd = sim_client_cmd("session", AID)
         self.proc = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=ROOT
         )

@@ -8,15 +8,10 @@ from pathlib import Path
 
 import pytest
 
-JCC_ROOT = Path(__file__).parent.parent.parent
-EXAMPLES = JCC_ROOT / "examples"
+from jcc.jcdk import config_dir
+
+EXAMPLES = Path(__file__).parent.parent.parent / "examples"
 SIM_PORT = 9026
-
-
-@pytest.fixture(scope="session")
-def jcc_root() -> Path:
-    """Path to jcc project root."""
-    return JCC_ROOT
 
 
 @pytest.fixture(scope="session")
@@ -48,11 +43,14 @@ def _docker(*args: str) -> subprocess.CompletedProcess[str]:
 
 @pytest.fixture(scope="session")
 def simulator() -> Iterator[None]:
-    """Start the test simulator (Docker), yield, then stop it."""
-    sim_dir = JCC_ROOT / "etc" / "jcdk-sim"
+    """Start the test simulator (Docker), yield, then stop it.
 
-    # Build image
-    _docker("build", "-t", "jcdk-sim", str(sim_dir))
+    Assumes the jcdk-sim Docker image is already built (via `just setup`).
+    """
+    sim_dir = config_dir() / "jcdk-sim"
+
+    if not sim_dir.exists():
+        pytest.skip("Simulator not installed (run `just setup`)")
 
     # Stop any existing container on our port
     result = _docker("ps", "-q", "--filter", f"publish={SIM_PORT}")
@@ -60,7 +58,7 @@ def simulator() -> Iterator[None]:
         _docker("rm", "-f", cid)
 
     # Start fresh container
-    _docker(
+    run_result = _docker(
         "run",
         "-d",
         "--name",
@@ -73,8 +71,12 @@ def simulator() -> Iterator[None]:
         "sh",
         "-c",
         "LD_LIBRARY_PATH=/jcdk-sim/runtime/bin "
+        "OPENSSL_MODULES=/jcdk-sim/runtime/bin "
         "/jcdk-sim/runtime/bin/jcsl -p=9025 -log_level=finest",
     )
+
+    if run_result.returncode != 0:
+        pytest.fail(f"Failed to start simulator container:\n{run_result.stderr}")
 
     # Wait for simulator to be ready
     for _ in range(20):
@@ -82,8 +84,9 @@ def simulator() -> Iterator[None]:
             break
         time.sleep(0.5)
     else:
+        logs = _docker("logs", "jcc-test-simulator")
         _docker("rm", "-f", "jcc-test-simulator")
-        pytest.fail("Simulator did not start within 10 seconds")
+        pytest.fail(f"Simulator did not start within 10 seconds\n{logs.stdout}\n{logs.stderr}")
 
     yield
 
