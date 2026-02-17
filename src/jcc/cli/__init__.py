@@ -90,7 +90,10 @@ def sim_cmd(
 
 def run() -> None:
     """Entry point for the CLI."""
-    app()
+    if len(sys.argv) == 1:
+        app(["--help"])
+    else:
+        app()
 
 
 if __name__ == "__main__":
