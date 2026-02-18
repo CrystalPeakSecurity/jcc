@@ -174,10 +174,18 @@ def download_and_extract(dest: Path, check_file: str, label: str) -> bool:
 
 def setup_python() -> None:
     print(f"\n{B}Python dependencies{Z}")
-    if run("uv", "sync", "--group", "dev"):
-        ok("Installed")
-    else:
+    r = subprocess.run(["uv", "sync", "--group", "dev"], capture_output=True, text=True)
+    if r.returncode != 0:
         fail("uv sync failed")
+        return
+    r = subprocess.run(["uv", "pip", "list", "--format", "columns"],
+                       capture_output=True, text=True)
+    if r.returncode == 0:
+        for line in r.stdout.strip().split("\n")[2:]:  # skip header
+            parts = line.split()
+            if len(parts) >= 2:
+                print(f"    {parts[0]} {parts[1]}")
+    ok("Synced")
 
 
 def setup_java() -> None:
