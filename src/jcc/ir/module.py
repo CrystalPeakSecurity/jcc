@@ -489,10 +489,20 @@ def _parse_block(
 
 
 def _parse_parameters(llvm_func: LLVMFunction) -> list[Parameter]:
-    """Parse function parameters."""
+    """Parse function parameters.
+
+    LLVM assigns sequential numbers (%0, %1, ...) to unnamed values.
+    Named values don't consume a number, so with mixed params like
+    ``(i16 %y, i16 %0)``, the unnamed param is %0 (not %1).
+    """
     params: list[Parameter] = []
-    for i, llvm_arg in enumerate(llvm_func.arguments):
-        name = SSAName("%" + llvm_arg.name if llvm_arg.name else f"%{i}")
+    unnamed_counter = 0
+    for llvm_arg in llvm_func.arguments:
+        if llvm_arg.name:
+            name = SSAName("%" + llvm_arg.name)
+        else:
+            name = SSAName(f"%{unnamed_counter}")
+            unnamed_counter += 1
         ty = map_llvm_type(llvm_arg.type)
         if ty is None:
             raise ModuleError(

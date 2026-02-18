@@ -2232,7 +2232,33 @@ def resolve_inline_gep(gep: InlineGEP, ctx: BuildContext) -> tuple[MemArray, Typ
         byte_offset = sum(gep.indices)
         return resolve_byte_offset_into_struct(info, byte_offset)
 
-    raise ValueError(f"Inline GEP into struct not supported: {gep}")
+    # AllocatedStruct with field indices (Linux clang folds these into
+    # constant expressions instead of separate GEP instructions).
+    # Same logic as resolve_struct_gep but all indices are constants.
+    is_array_source = gep.source_type.strip().startswith("[")
+    if is_array_source:
+        # Form A: indices[0]=ptr deref, [1]=struct index, [2]=field index
+        struct_idx = gep.indices[1] if len(gep.indices) > 1 else 0
+        field_start = 2
+    else:
+        # Form B: indices[0]=struct index, [1]=field index
+        struct_idx = gep.indices[0] if gep.indices else 0
+        field_start = 1
+
+    field_idx = gep.indices[field_start] if len(gep.indices) > field_start else 0
+    if field_idx >= len(info.fields):
+        raise ValueError(f"Field index {field_idx} out of range for struct {info.name}")
+
+    field = info.fields[field_idx]
+    base = field.mem_offset + struct_idx * field.elem_count
+
+    # Handle additional index (array within struct field)
+    if len(gep.indices) > field_start + 1:
+        extra = gep.indices[field_start + 1]
+        scale = 2 if field.decomposed_int else 1
+        base += extra * scale
+
+    return (field.mem_array, ConstExpr(ty=JCType.SHORT, value=base))
 
 
 def resolve_chained_byte_gep(
