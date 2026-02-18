@@ -2,6 +2,7 @@
 """Interactive setup for jcc development environment."""
 
 import json
+import os
 import platform
 import shutil
 import subprocess
@@ -63,7 +64,7 @@ def ask_path(prompt: str) -> Path | None:
         else:
             out.append(raw[i])
             i += 1
-    return Path("".join(out))
+    return Path("".join(out)).expanduser()
 
 
 def cmd_ok(*args: str) -> str | None:
@@ -218,8 +219,24 @@ def setup_jcdk() -> None:
     ok(f"Installed to {jcdk}")
 
 
+def _sim_ready(sim: Path) -> bool:
+    """Check if simulator is fully set up (files, keys, docker image)."""
+    if not (sim / "runtime" / "bin" / "jcsl").exists():
+        return False
+    # Check docker image exists
+    r = subprocess.run(["docker", "image", "inspect", "jcdk-sim"],
+                       capture_output=True)
+    return r.returncode == 0
+
+
 def setup_simulator() -> None:
     print(f"\n{B}JavaCard Simulator{Z}")
+    sim = CONFIG_DIR / "jcdk-sim"
+
+    if _sim_ready(sim):
+        ok(str(sim))
+        return
+
     print("    Runs in Docker (32-bit Linux binary).")
     if not ask_yn("Set up simulator?"):
         return
@@ -231,7 +248,6 @@ def setup_simulator() -> None:
         return
 
     ok("Docker available")
-    sim = CONFIG_DIR / "jcdk-sim"
 
     if not (sim / "runtime" / "bin" / "jcsl").exists():
         warn("Simulator not found")
@@ -273,13 +289,26 @@ def setup_simulator() -> None:
     if r.returncode == 0:
         ok("Docker image built")
     else:
-        fail("Docker build failed")
-        for line in r.stderr.strip().split("\n")[-3:]:
-            print(f"    {line}")
+        if "permission denied" in r.stderr.lower():
+            fail("Docker permission denied")
+            print(f"    Run: {B}sudo usermod -aG docker $USER{Z}")
+            print(f"    Then log out and back in.")
+        else:
+            fail("Docker build failed")
+            for line in r.stderr.strip().split("\n")[-3:]:
+                print(f"    {line}")
 
 
 def setup_rust() -> None:
     print(f"\n{B}Rust + wasm32{Z}")
+
+    if shutil.which("rustc"):
+        targets = cmd_ok("rustup", "target", "list", "--installed") or ""
+        if "wasm32-unknown-unknown" in targets:
+            ok(cmd_ok("rustc", "--version") or "rustc")
+            ok("wasm32-unknown-unknown")
+            return
+
     if not ask_yn("Set up Rust support?"):
         return
 
@@ -288,8 +317,11 @@ def setup_rust() -> None:
         if not ask_yn("Install via rustup?"):
             return
         subprocess.run(["sh", "-c", "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"])
-        ok("Installed — restart your shell then re-run just setup")
-        return
+        cargo_bin = str(Path.home() / ".cargo" / "bin")
+        os.environ["PATH"] = cargo_bin + os.pathsep + os.environ["PATH"]
+        if not shutil.which("rustc"):
+            ok("Installed — restart your shell then re-run just setup")
+            return
 
     ok(cmd_ok("rustc", "--version") or "rustc")
 
@@ -307,12 +339,11 @@ def setup_rust() -> None:
 
 def setup_gp() -> None:
     print(f"\n{B}GlobalPlatformPro{Z}")
-    if not ask_yn("Download for real card support?"):
-        return
-
     gp_jar = CONFIG_DIR / "gp" / "gp.jar"
     if gp_jar.exists():
         ok(str(gp_jar))
+        return
+    if not ask_yn("Download for real card support?"):
         return
 
     print("    Downloading...")

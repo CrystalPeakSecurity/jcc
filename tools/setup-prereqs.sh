@@ -28,6 +28,7 @@ else
     fi
     if ask_install "just ($cmd)"; then
         $cmd
+        printf "\n"
         ok "just $(just --version | head -1)"
     else
         fail "just required"
@@ -41,8 +42,9 @@ if command -v uv >/dev/null 2>&1; then
 else
     if ask_install "uv"; then
         curl -LsSf https://astral.sh/uv/install.sh | sh
-        ok "uv installed — restart your shell, then re-run just setup"
-        exit 0
+        . "$HOME/.local/bin/env"
+        printf "\n"
+        ok "$(uv --version)"
     else
         fail "uv required"
         exit 1
@@ -63,6 +65,7 @@ else
     fi
     if ask_install "Java ($cmd)"; then
         $cmd
+        printf "\n"
         ok "$(java -version 2>&1 | head -1)"
     else
         fail "javac not found"
@@ -81,6 +84,7 @@ else
     fi
     if ask_install "Clang ($cmd)"; then
         $cmd
+        printf "\n"
         ok "$(clang --version | head -1)"
     else
         fail "clang not found"
@@ -94,4 +98,9 @@ if command -v docker >/dev/null 2>&1; then
 else
     printf "  ${R}--${Z} docker not found (optional, used for simulator)\n"
     printf "    Install: ${B}https://docs.docker.com/get-docker/${Z}\n"
+    printf "  Continue without docker? [y/N] "
+    read -r resp
+    if [[ ! "${resp:-n}" =~ ^[Yy]$ ]]; then
+        exit 0
+    fi
 fi
