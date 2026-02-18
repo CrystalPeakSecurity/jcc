@@ -330,16 +330,26 @@ def setup_gp() -> None:
 # --- Main ---
 
 
-def main() -> None:
-    print(f"{B}jcc setup{Z}")
+def main_prereqs() -> None:
+    print(f"{B}jcc setup-prereqs{Z}")
     setup_python()
     setup_java()
     setup_clang()
+    print()
+
+
+def main_toolchain() -> None:
+    print(f"{B}jcc setup-toolchain{Z}")
     setup_jcdk()
     setup_simulator()
     setup_rust()
     setup_gp()
     print()
+
+
+def main() -> None:
+    main_prereqs()
+    main_toolchain()
 
 
 if __name__ == "__main__":

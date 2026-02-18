@@ -1,19 +1,21 @@
-# Interactive setup
-setup:
-    uv run jcc run-setup
+# Full setup: prerequisites + toolchain
+setup: setup-prereqs setup-toolchain
 
-# Run type check and tests
-check:
-    uv run pyright
-    uv run pytest
+# Install prerequisites (uv, Python deps, Java, Clang)
+setup-prereqs:
+    tools/setup-prereqs.sh
+
+# Interactive toolchain setup (JCDK, simulator, Rust, GlobalPlatformPro)
+setup-toolchain:
+    uv run jcc run-setup-toolchain
+
+# Run tests (pass --dev to also run pyright)
+test *args:
+    uv run python tools/run_tests.py {{args}}
 
 # Format code with ruff
 format:
     uv run ruff format src tests
-
-# Dump parsed IR from a .ll file (optionally filter to one function with -f)
-dump file *args:
-    uv run python -m jcc.tool.dump_ir "{{file}}" {{args}}
 
 # Build a project
 build dir:

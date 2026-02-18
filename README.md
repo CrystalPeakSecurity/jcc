@@ -4,11 +4,13 @@ Compiles LLVM IR to JavaCard bytecode (CAP files). Any language with an LLVM fro
 
 ## Quick Start
 
+This project is working but has some rough edges. Please file an issue if you run into problems.
+
 ```bash
 git clone https://github.com/CrystalPeakSecurity/jcc.git
 cd jcc
-just setup              # guided setup (downloads JCDK, simulator)
-just check              # type checker + tests
+./setup.sh              # installs prereqs, then guided toolchain setup
+just test               # run tests
 just sim examples/2048  # load a project in the simulator (stays running)
 
 # in another terminal:
@@ -53,7 +55,7 @@ Additional examples and tests are in the `examples/` directory.
 ## Project Structure
 
 - `src/jcc/` - Compiler (LLVM IR parser, analysis, codegen, output)
-- `src/jcc/cli/` - CLI (`jcc`, `jcc run-sim`, `jcc run-verify`, `jcc run-setup`)
+- `src/jcc/cli/` - CLI (`jcc`, `jcc run-setup`, `jcc run-sim`, `jcc run-verify`)
 - `src/jcc/cap/` - CAP file bytecode verifier
 - `src/jcc/driver/` - Simulator/card session management
 - `examples/` - Example applets with drivers

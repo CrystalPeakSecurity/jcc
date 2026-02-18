@@ -2,7 +2,8 @@
 
 Usage:
     jcc [PATH]                      # build (default)
-    jcc run-setup                   # interactive environment setup
+    jcc run-setup                   # full setup (prereqs + toolchain)
+    jcc run-setup-toolchain         # interactive toolchain setup
     jcc run-verify CAP              # bytecode verification
     jcc run-sim CAP [CAP ...]       # start simulator, load applets, stream output
 """
@@ -48,9 +49,16 @@ def main(
 
 @app.command(name="run-setup")
 def setup_cmd() -> None:
-    """Interactive environment setup."""
+    """Full setup: prerequisites + toolchain."""
     from jcc.cli.setup import run_setup
     run_setup()
+
+
+@app.command(name="run-setup-toolchain")
+def setup_toolchain_cmd() -> None:
+    """Interactive toolchain setup (JCDK, simulator, Rust, GlobalPlatformPro)."""
+    from jcc.cli.setup import run_setup_toolchain
+    run_setup_toolchain()
 
 
 @app.command(name="run-verify")
