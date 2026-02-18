@@ -53,6 +53,10 @@ fi
 
 # Sync project
 uv sync --group dev >/dev/null 2>&1
+uv pip list --format columns 2>/dev/null | tail -n +3 | while read -r pkg ver _; do
+    printf "    %s %s\n" "$pkg" "$ver"
+done
+ok "deps synced"
 
 # Java
 if command -v javac >/dev/null 2>&1; then

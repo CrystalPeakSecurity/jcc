@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""Interactive setup for jcc development environment."""
+"""Interactive setup for jcc toolchain (JCDK, simulator, Rust, GlobalPlatformPro)."""
 
 import json
 import os
 import platform
 import shutil
 import subprocess
-import sys
 import tarfile
 import urllib.request
 import zipfile
@@ -172,44 +171,6 @@ def download_and_extract(dest: Path, check_file: str, label: str) -> bool:
 # --- Steps ---
 
 
-def setup_python() -> None:
-    print(f"\n{B}Python dependencies{Z}")
-    r = subprocess.run(["uv", "sync", "--group", "dev"], capture_output=True, text=True)
-    if r.returncode != 0:
-        fail("uv sync failed")
-        return
-    r = subprocess.run(["uv", "pip", "list", "--format", "columns"],
-                       capture_output=True, text=True)
-    if r.returncode == 0:
-        for line in r.stdout.strip().split("\n")[2:]:  # skip header
-            parts = line.split()
-            if len(parts) >= 2:
-                print(f"    {parts[0]} {parts[1]}")
-    ok("Synced")
-
-
-def setup_java() -> None:
-    print(f"\n{B}Java{Z}")
-    v = cmd_ok("java", "-version")
-    if v:
-        ok(v.split("\n")[0])
-    else:
-        fail("Not found")
-        is_mac = platform.system() == "Darwin"
-        print(f"    Run: {B}{'brew install openjdk' if is_mac else 'sudo apt install default-jdk'}{Z}")
-
-
-def setup_clang() -> None:
-    print(f"\n{B}Clang{Z}")
-    v = cmd_ok("clang", "--version")
-    if v:
-        ok(v.split("\n")[0])
-    else:
-        fail("Not found")
-        is_mac = platform.system() == "Darwin"
-        print(f"    Run: {B}{'xcode-select --install' if is_mac else 'sudo apt install clang'}{Z}")
-
-
 def setup_jcdk() -> None:
     print(f"\n{B}JavaCard SDK{Z}")
     jcdk = CONFIG_DIR / "jcdk"
@@ -231,7 +192,6 @@ def _sim_ready(sim: Path) -> bool:
     """Check if simulator is fully set up (files, keys, docker image)."""
     if not (sim / "runtime" / "bin" / "jcsl").exists():
         return False
-    # Check docker image exists
     r = subprocess.run(["docker", "image", "inspect", "jcdk-sim"],
                        capture_output=True)
     return r.returncode == 0
@@ -369,14 +329,6 @@ def setup_gp() -> None:
 # --- Main ---
 
 
-def main_prereqs() -> None:
-    print(f"{B}jcc setup-prereqs{Z}")
-    setup_python()
-    setup_java()
-    setup_clang()
-    print()
-
-
 def main_toolchain() -> None:
     print(f"{B}jcc setup-toolchain{Z}")
     setup_jcdk()
@@ -384,16 +336,3 @@ def main_toolchain() -> None:
     setup_rust()
     setup_gp()
     print()
-
-
-def main() -> None:
-    main_prereqs()
-    main_toolchain()
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print()
-        sys.exit(1)
