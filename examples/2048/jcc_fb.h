@@ -22,13 +22,13 @@
 #define COLOR_TEXT_LIGHT 14
 #define COLOR_GRID 15
 
-// Must be first global for apduSendBytesLong offset calculation
+// Must be first global for jc_APDU_sendBytesLong offset calculation
 byte framebuffer[FB_SIZE];
 
 void clearFB(byte color) {
     byte fill = (byte)(((color & 0x0F) << 4) |
                        (color & 0x0F)); // jcc:ignore-sign-extension
-    memset_byte(framebuffer, fill, FB_SIZE);
+    memset_bytes(framebuffer, fill, FB_SIZE);
 }
 
 void setPixel(short x, short y, byte color) {
@@ -58,20 +58,20 @@ void fillTile(short col, short row, byte color) {
     byte fill = (byte)(((color & 0x0F) << 4) |
                        (color & 0x0F)); // jcc:ignore-sign-extension
 
-    memset_at(framebuffer, baseOffset, fill, 7);
-    memset_at(framebuffer, baseOffset + 32, fill, 7);
-    memset_at(framebuffer, baseOffset + 64, fill, 7);
-    memset_at(framebuffer, baseOffset + 96, fill, 7);
-    memset_at(framebuffer, baseOffset + 128, fill, 7);
-    memset_at(framebuffer, baseOffset + 160, fill, 7);
-    memset_at(framebuffer, baseOffset + 192, fill, 7);
-    memset_at(framebuffer, baseOffset + 224, fill, 7);
-    memset_at(framebuffer, baseOffset + 256, fill, 7);
-    memset_at(framebuffer, baseOffset + 288, fill, 7);
-    memset_at(framebuffer, baseOffset + 320, fill, 7);
-    memset_at(framebuffer, baseOffset + 352, fill, 7);
-    memset_at(framebuffer, baseOffset + 384, fill, 7);
-    memset_at(framebuffer, baseOffset + 416, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 32, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 64, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 96, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 128, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 160, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 192, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 224, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 256, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 288, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 320, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 352, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 384, fill, 7);
+    memset_bytes_at(framebuffer, baseOffset + 416, fill, 7);
 }
 
 void hline(short x0, short x1, short y, byte color) {
@@ -99,7 +99,7 @@ void hline(short x0, short x1, short y, byte color) {
     numBytes = (x1 - x + 1) >> 1; // jcc:ignore-sign-extension
     if (numBytes > 0) {
         startByte = rowBase + (x >> 1); // jcc:ignore-sign-extension
-        memset_at(framebuffer, startByte, fill, numBytes);
+        memset_bytes_at(framebuffer, startByte, fill, numBytes);
         x = x + (numBytes << 1);
     }
 
@@ -129,7 +129,7 @@ void fillRect(short x0, short y0, short x1, short y1, byte color) {
     if (x0 == 0 && x1 == SCREEN_WIDTH - 1) {
         startByte = y0 << 5;             // jcc:ignore-sign-extension
         totalBytes = (y1 - y0 + 1) << 5; // jcc:ignore-sign-extension
-        memset_at(framebuffer, startByte, fill, totalBytes);
+        memset_bytes_at(framebuffer, startByte, fill, totalBytes);
         return;
     }
 
@@ -145,7 +145,7 @@ void fillRect(short x0, short y0, short x1, short y1, byte color) {
         numBytes = (x1 - x + 1) >> 1; // jcc:ignore-sign-extension
         if (numBytes > 0) {
             startByte = rowBase + (x >> 1); // jcc:ignore-sign-extension
-            memset_at(framebuffer, startByte, fill, numBytes);
+            memset_bytes_at(framebuffer, startByte, fill, numBytes);
             x = x + (numBytes << 1);
         }
 

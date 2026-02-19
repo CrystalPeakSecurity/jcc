@@ -174,8 +174,8 @@ void R_RenderView(short px, short py, short angle) {
             // Full wall bytes in middle
             wlen = eb - sb + 1;
             if (wlen > 0) {
-                memset_at(framebuffer, c1 + sb, fill, wlen);
-                memset_at(framebuffer, c2 + sb, fill, wlen);
+                memset_bytes_at(framebuffer, c1 + sb, fill, wlen);
+                memset_bytes_at(framebuffer, c2 + sb, fill, wlen);
             }
         }
     }

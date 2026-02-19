@@ -23,7 +23,7 @@ void P_InitPlayer(void) {
 }
 
 void process(APDU apdu, short apdu_len) {
-    byte *buffer = apduGetBuffer(apdu);
+    byte *buffer = jc_APDU_getBuffer(apdu);
     short ins = buffer[1] & 0xFF;
 
     // Single render frame (test mode)
@@ -31,9 +31,9 @@ void process(APDU apdu, short apdu_len) {
         clearFB();
         R_RenderView(PLAYER_START_X, PLAYER_START_Y, PLAYER_START_ANGLE);
 
-        apduSetOutgoing(apdu);
-        apduSetOutgoingLength(apdu, FB_SIZE);
-        apduSendBytesLong(apdu, framebuffer, 0, FB_SIZE);
+        jc_APDU_setOutgoing(apdu);
+        jc_APDU_setOutgoingLength(apdu, FB_SIZE);
+        jc_APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
         return;
     }
 
@@ -67,13 +67,13 @@ void process(APDU apdu, short apdu_len) {
         R_RenderView(player.x, player.y, player.angle);
 
         // Send framebuffer
-        apduSetOutgoing(apdu);
-        apduSetOutgoingLength(apdu, FB_SIZE);
-        apduSendBytesLong(apdu, framebuffer, 0, FB_SIZE);
+        jc_APDU_setOutgoing(apdu);
+        jc_APDU_setOutgoingLength(apdu, FB_SIZE);
+        jc_APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
         return;
     }
 
-    throwError(0x6D00);
+    jc_ISOException_throwIt(0x6D00);
 }
 
 void _jcsl_method_cap_fix(void) {}

@@ -132,8 +132,8 @@ TESTS = [
     (0x0F, 4, 101, "type promotion"),
 
     # === INS 0x10: Logical shift ===
-    (0x10, 3, 16384, "lshr_int INT_MIN"),
-    (0x10, 4, -1, "lshr_int -1 >> 16"),
+    (0x10, 3, 16384, "__builtin_lshr_int INT_MIN"),
+    (0x10, 4, -1, "__builtin_lshr_int -1 >> 16"),
 
     # === INS 0x11: Hex literals ===
     (0x11, 0, 1, "0x80000000 is negative"),
@@ -304,7 +304,7 @@ TESTS = [
     (0x2C, 1, 1, "verify all filled"),
     (0x2C, 2, 55, "partial fill"),
     (0x2C, 3, 0, "unfilled part"),
-    (0x2C, 4, 77, "memset_at offset"),
+    (0x2C, 4, 77, "memset_bytes_at offset"),
     (0x2C, 5, 0, "before offset"),
     (0x2C, 6, -1, "fill 0xFF"),
     (0x2C, 7, 0, "fill 0"),
@@ -389,13 +389,13 @@ TESTS = [
     (0x35, 2, -8, "-128>>4"),
     (0x35, 3, -8, "0xFF80>>4"),
     (0x35, 4, -1, "-1>>15"),
-    (0x35, 5, 1, "lshr_int(-1,31)"),
+    (0x35, 5, 1, "__builtin_lshr_int(-1,31)"),
     (0x35, 6, -16384, "0x8000>>1 sign ext"),
     (0x35, 7, 0, "(0x8000&0x7FFF)>>1 masked"),
     (0x35, 8, -1, "0xFF00>>8"),
     (0x35, 9, -1, "(byte)-1>>4 promoted"),
     (0x35, 10, -1, "int -1>>16"),
-    (0x35, 11, 16384, "lshr_int 0x80000000"),
+    (0x35, 11, 16384, "__builtin_lshr_int 0x80000000"),
 
     # === INS 0x36: Struct Arrays ===
     (0x36, 0, 10, "pts[0].x=10"),
@@ -558,10 +558,10 @@ TESTS = [
     (0x60, 3, -1, "fill 0xFF, read [0]"),
     (0x60, 4, -128, "fill 0x80, read [0]"),
     (0x60, 5, 127, "fill 0x7F, read [0]"),
-    (0x60, 6, 0, "memset_at: before region"),
-    (0x60, 7, 51, "memset_at: first byte"),
-    (0x60, 8, 51, "memset_at: last byte"),
-    (0x60, 9, 0, "memset_at: after region"),
+    (0x60, 6, 0, "memset_bytes_at: before region"),
+    (0x60, 7, 51, "memset_bytes_at: first byte"),
+    (0x60, 8, 51, "memset_bytes_at: last byte"),
+    (0x60, 9, 0, "memset_bytes_at: after region"),
     (0x60, 10, 0, "fill 0, sum 80"),
     (0x60, 11, 10, "fill 1, sum first 10"),
 

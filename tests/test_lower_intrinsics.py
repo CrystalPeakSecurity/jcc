@@ -19,7 +19,7 @@ from jcc.lower.intrinsics import (
     lower_abs,
     lower_block,
     lower_function,
-    lower_lshr_int,
+    lower___builtin_lshr_int,
     lower_module,
     lower_smax,
     lower_smin,
@@ -110,9 +110,9 @@ class TestFreshNameGenerator:
 
 
 class TestIsLowerableIntrinsic:
-    def test_lshr_int_lowerable(self) -> None:
-        """lshr_int is lowerable."""
-        assert is_lowerable_intrinsic("lshr_int")
+    def test___builtin_lshr_int_lowerable(self) -> None:
+        """__builtin_lshr_int is lowerable."""
+        assert is_lowerable_intrinsic("__builtin_lshr_int")
 
     def test_smax_lowerable(self) -> None:
         """llvm.smax variants are lowerable."""
@@ -155,14 +155,14 @@ class TestIsLowerableIntrinsic:
         assert not is_lowerable_intrinsic("helper")
 
 
-# === lower_lshr_int Tests ===
+# === lower___builtin_lshr_int Tests ===
 
 
 class TestLowerLshrInt:
     def test_basic_lowering(self) -> None:
-        """lshr_int(val, amt) -> lshr i32 val, amt."""
-        call = make_call("%result", "lshr_int", ["%val", "%amt"], JCType.INT)
-        result = lower_lshr_int(call)
+        """__builtin_lshr_int(val, amt) -> lshr i32 val, amt."""
+        call = make_call("%result", "__builtin_lshr_int", ["%val", "%amt"], JCType.INT)
+        result = lower___builtin_lshr_int(call)
 
         assert len(result) == 1
         assert isinstance(result[0], BinaryInst)
@@ -173,9 +173,9 @@ class TestLowerLshrInt:
         assert instr.ty == JCType.INT
 
     def test_constant_operands(self) -> None:
-        """lshr_int with constant operands."""
-        call = make_call("%result", "lshr_int", [100, 2], JCType.INT)
-        result = lower_lshr_int(call)
+        """__builtin_lshr_int with constant operands."""
+        call = make_call("%result", "__builtin_lshr_int", [100, 2], JCType.INT)
+        result = lower___builtin_lshr_int(call)
 
         assert len(result) == 1
         instr = result[0]
@@ -185,15 +185,15 @@ class TestLowerLshrInt:
 
     def test_wrong_arg_count_raises(self) -> None:
         """Wrong argument count raises ValueError."""
-        call = make_call("%result", "lshr_int", ["%val"], JCType.INT)
+        call = make_call("%result", "__builtin_lshr_int", ["%val"], JCType.INT)
         with pytest.raises(ValueError):
-            lower_lshr_int(call)
+            lower___builtin_lshr_int(call)
 
     def test_no_result_raises(self) -> None:
         """No result raises ValueError."""
-        call = make_call(None, "lshr_int", ["%val", "%amt"], JCType.INT)
+        call = make_call(None, "__builtin_lshr_int", ["%val", "%amt"], JCType.INT)
         with pytest.raises(ValueError):
-            lower_lshr_int(call)
+            lower___builtin_lshr_int(call)
 
 
 # === lower_smax Tests ===
@@ -386,7 +386,7 @@ class TestLowerBlock:
         """Intrinsic calls in block are lowered."""
         block = make_block(
             "entry",
-            [make_call("%result", "lshr_int", ["%val", 2], JCType.INT)],
+            [make_call("%result", "__builtin_lshr_int", ["%val", 2], JCType.INT)],
         )
         fresh = FreshNameGenerator()
         result = lower_block(block, fresh)
@@ -412,7 +412,7 @@ class TestLowerBlock:
         block = make_block(
             "entry",
             [
-                make_call("%a", "lshr_int", ["%x", 1], JCType.INT),
+                make_call("%a", "__builtin_lshr_int", ["%x", 1], JCType.INT),
                 make_call("%b", "jc_APDU_getBuffer", ["%apdu"]),
                 make_call("%c", "llvm.smax.i16", ["%y", "%z"]),
             ],
@@ -420,7 +420,7 @@ class TestLowerBlock:
         fresh = FreshNameGenerator()
         result = lower_block(block, fresh)
 
-        # lshr_int -> 1 BinaryInst
+        # __builtin_lshr_int -> 1 BinaryInst
         # jc_APDU_getBuffer -> 1 CallInst (unchanged)
         # llvm.smax.i16 -> 1 ICmpInst + 1 SelectInst
         assert len(result.instructions) == 4
@@ -441,7 +441,7 @@ class TestLowerFunction:
             [
                 make_block(
                     "entry",
-                    [make_call("%a", "lshr_int", [1, 2], JCType.INT)],
+                    [make_call("%a", "__builtin_lshr_int", [1, 2], JCType.INT)],
                 ),
             ],
         )
@@ -460,7 +460,7 @@ class TestLowerModule:
             [
                 make_function(
                     "func1",
-                    [make_block("entry", [make_call("%a", "lshr_int", [1, 2], JCType.INT)])],
+                    [make_block("entry", [make_call("%a", "__builtin_lshr_int", [1, 2], JCType.INT)])],
                 ),
                 make_function(
                     "func2",

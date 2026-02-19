@@ -23,7 +23,7 @@
 #define FRAME1_SCREEN_WIDTH 32
 #define FRAME1_SCREEN_HEIGHT 20
 
-// Uses shared_fb from main.c (must be at offset 0 for memset_byte)
+// Uses shared_fb from main.c (must be at offset 0 for memset_bytes)
 #define frame1_fb shared_fb
 
 // Checksum helper
@@ -78,7 +78,7 @@ void frame1_fillRect(short x0, short y0, short x1, short y1, byte color) {
     fillByte = color ? (byte)0xFF : (byte)0x00;
 
     if (x0 == 0 && x1 == FRAME1_SCREEN_WIDTH - 1) {
-        memset_at(frame1_fb, (y0 << 2), fillByte, (y1 - y0 + 1) << 2);
+        memset_bytes_at(frame1_fb, (y0 << 2), fillByte, (y1 - y0 + 1) << 2);
         return;
     }
 
@@ -100,7 +100,7 @@ void frame1_fillRect(short x0, short y0, short x1, short y1, byte color) {
                 frame1_fb[rowBase + startByte] &= (byte)~startMask;
 
             if (middleBytes > 0) {
-                memset_at(frame1_fb, rowBase + startByte + 1, fillByte,
+                memset_bytes_at(frame1_fb, rowBase + startByte + 1, fillByte,
                           middleBytes);
             }
 
@@ -131,7 +131,7 @@ void frame1_render_ready_screen(void) {
 void test_frame1(APDU apdu, byte* buffer, byte p1) {
     // P1=0: Full frame 1 checksum (expected: 960)
     if (p1 == 0) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_render_ready_screen();
         sendResult(apdu, buffer, frame1_checksum());                             // 960
         return;
@@ -139,7 +139,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
 
     // P1=1: Just clear, return checksum (expected: 0)
     if (p1 == 1) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         sendResult(apdu, buffer, frame1_checksum());                             // 0
         return;
     }
@@ -148,7 +148,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
     // fillRect(8, 9, 10, 11, 1) should set bytes 37, 41, 45 to 0xE0
     // Expected: 224 * 3 = 672
     if (p1 == 2) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_fillRect(8, 9, 10, 11, 1);
         sendResult(apdu, buffer, frame1_checksum());                             // 672
         return;
@@ -162,7 +162,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
     // fb[29] = 0xE0 = 224
     // Expected: 64 + 224 = 288
     if (p1 == 3) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_setPixel(9, 6, 1);
         frame1_setPixel(8, 7, 1);
         frame1_setPixel(9, 7, 1);
@@ -173,7 +173,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
 
     // P1=4: Return fb[25] after frame 1 (expected: 0x40 = 64)
     if (p1 == 4) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_render_ready_screen();
         sendResult(apdu, buffer, frame1_fb[25] & 0xFF);                          // 64
         return;
@@ -181,7 +181,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
 
     // P1=5: Return fb[29] after frame 1 (expected: 0xE0 = 224)
     if (p1 == 5) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_render_ready_screen();
         sendResult(apdu, buffer, frame1_fb[29] & 0xFF);                          // 224
         return;
@@ -189,7 +189,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
 
     // P1=6: Return fb[37] after frame 1 (expected: 0xE0 = 224)
     if (p1 == 6) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_render_ready_screen();
         sendResult(apdu, buffer, frame1_fb[37] & 0xFF);                          // 224
         return;
@@ -197,7 +197,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
 
     // P1=7: Return fb[41] after frame 1 (expected: 0xE0 = 224)
     if (p1 == 7) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_render_ready_screen();
         sendResult(apdu, buffer, frame1_fb[41] & 0xFF);                          // 224
         return;
@@ -205,7 +205,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
 
     // P1=8: Return fb[45] after frame 1 (expected: 0xE0 = 224)
     if (p1 == 8) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_render_ready_screen();
         sendResult(apdu, buffer, frame1_fb[45] & 0xFF);                          // 224
         return;
@@ -217,7 +217,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
     // byteIdx = (6 << 2) + (9 >> 3) = 24 + 1 = 25
     // mask = 0x80 >> (9 & 7) = 0x80 >> 1 = 0x40
     if (p1 == 10) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_setPixel(9, 6, 1);
         sendResult(apdu, buffer, frame1_fb[25] & 0xFF);                          // 64
         return;
@@ -227,7 +227,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
     // byteIdx = (7 << 2) + (8 >> 3) = 28 + 1 = 29
     // mask = 0x80 >> (8 & 7) = 0x80 >> 0 = 0x80
     if (p1 == 11) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_setPixel(8, 7, 1);
         sendResult(apdu, buffer, frame1_fb[29] & 0xFF);                          // 128
         return;
@@ -236,7 +236,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
     // P1=12: Test single setPixel at (9, 7)
     // mask = 0x80 >> 1 = 0x40
     if (p1 == 12) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_setPixel(9, 7, 1);
         sendResult(apdu, buffer, frame1_fb[29] & 0xFF);                          // 64
         return;
@@ -245,7 +245,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
     // P1=13: Test single setPixel at (10, 7)
     // mask = 0x80 >> 2 = 0x20
     if (p1 == 13) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_setPixel(10, 7, 1);
         sendResult(apdu, buffer, frame1_fb[29] & 0xFF);                          // 32
         return;
@@ -268,7 +268,7 @@ void test_frame1(APDU apdu, byte* buffer, byte p1) {
 
     // P1=15: Test fillRect single row at y=9
     if (p1 == 15) {
-        memset_byte(frame1_fb, 0, FRAME1_FB_SIZE);
+        memset_bytes(frame1_fb, 0, FRAME1_FB_SIZE);
         frame1_fillRect(8, 9, 10, 9, 1);  // Single row
         sendResult(apdu, buffer, frame1_fb[37] & 0xFF);                          // 224
         return;

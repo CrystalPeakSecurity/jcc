@@ -366,7 +366,7 @@ void R_ClipSolidWallSegment(short first, short last) {
             R_StoreWallRange(first, last);
 
             if (newend_idx >= MAXSEGS) {
-                throwError(SW_UNKNOWN);
+                jc_ISOException_throwIt(SW_UNKNOWN);
             }
 
             for (i = newend_idx; i > start_idx; i--) {
@@ -832,7 +832,7 @@ void R_RenderBSPNode(short rootNode) {
 
             if (R_CheckBBox(bspnum, side ^ 1)) {
                 if (bsp_sp >= BSP_STACK_SIZE) {
-                    throwError(SW_UNKNOWN);
+                    jc_ISOException_throwIt(SW_UNKNOWN);
                 }
                 bsp_stack[bsp_sp] = backChild;
                 bsp_sp++;

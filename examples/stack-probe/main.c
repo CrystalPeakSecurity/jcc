@@ -10,6 +10,9 @@
 
 #include "jcc.h"
 
+#define READ_SHORT(buf, off) \
+    ((short)(((buf[(off)] & 0xFF) << 8) | (buf[(off)+1] & 0xFF)))
+
 short test_1(void) {
     volatile short v0 = 0;
     return v0;
@@ -947,13 +950,13 @@ short test_255(void) {
 }
 
 void process(APDU apdu, short len) {
-    byte* buffer = apduGetBuffer(apdu);
+    byte* buffer = jc_APDU_getBuffer(apdu);
     short ins = buffer[APDU_INS];
     short slots = READ_SHORT(buffer, 2);  // P1:P2
     short result = 0;
 
     if (ins != 0x01) {
-        throwError(0x6D00);
+        jc_ISOException_throwIt(0x6D00);
         return;
     }
 
@@ -975,12 +978,12 @@ void process(APDU apdu, short len) {
         case 191: result = test_191(); break;
         case 255: result = test_255(); break;
         default:
-            throwError(0x6A86);  // Unsupported slot count
+            jc_ISOException_throwIt(0x6A86);  // Unsupported slot count
             return;
     }
 
     // Return the result
     buffer[0] = (byte)(result >> 8);
     buffer[1] = (byte)result;
-    APDU_SEND(apdu, 2);
+    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 2); jc_APDU_sendBytes(apdu, 0, 2);
 }

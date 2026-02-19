@@ -4,7 +4,7 @@ Transforms LLVM intrinsics to regular IR instructions before codegen.
 This keeps the codegen phase simple.
 
 Lowering transformations:
-- lshr_int(val, amt) → lshr i32 %val, %amt
+- __builtin_lshr_int(val, amt) → lshr i32 %val, %amt
 - llvm.smax.i16(a, b) → icmp sgt + select
 - llvm.smin.i16(a, b) → icmp slt + select
 
@@ -106,11 +106,11 @@ def is_lowerable_intrinsic(func_name: str) -> bool:
 
 
 # Set of intrinsics we can lower to regular IR instructions.
-# Note: memset_byte is NOT here - it should be #defined to jc_Util_arrayFillNonAtomic
-# in the C header, so we never see it in IR.
+# Note: memset_bytes is NOT here - it's #defined to jc_Util_arrayFillNonAtomic
+# in jcc.h, so we never see it in IR.
 LOWERABLE_INTRINSICS = frozenset(
     [
-        "lshr_int",
+        "__builtin_lshr_int",
         "llvm.smax.i8",
         "llvm.smax.i16",
         "llvm.smin.i8",
@@ -140,8 +140,8 @@ def lower_intrinsic(
     """
     func_name = call.func_name
 
-    if func_name == "lshr_int":
-        return lower_lshr_int(call)
+    if func_name == "__builtin_lshr_int":
+        return lower___builtin_lshr_int(call)
 
     if func_name in ("llvm.smax.i8", "llvm.smax.i16", "llvm.smax.i32"):
         return lower_smax(call, fresh)
@@ -162,16 +162,16 @@ def lower_intrinsic(
     raise ValueError(f"Unknown lowerable intrinsic: {func_name}")
 
 
-def lower_lshr_int(call: CallInst) -> list[Instruction]:
-    """lshr_int(val, amt) → lshr i32 %val, %amt
+def lower___builtin_lshr_int(call: CallInst) -> list[Instruction]:
+    """__builtin_lshr_int(val, amt) → lshr i32 %val, %amt
 
     Logical shift right for 32-bit integers.
     """
     if len(call.args) != 2:
-        raise ValueError(f"lshr_int expects 2 args, got {len(call.args)}")
+        raise ValueError(f"__builtin_lshr_int expects 2 args, got {len(call.args)}")
 
     if call.result is None:
-        raise ValueError("lshr_int must have a result")
+        raise ValueError("__builtin_lshr_int must have a result")
 
     return [
         BinaryInst(

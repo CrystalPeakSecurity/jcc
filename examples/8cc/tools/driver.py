@@ -452,9 +452,9 @@ TESTS = [
     (0x29, 0, -1, "ashr(-1, 8) sign ext"),
     (0x29, 1, 255, "manual lshr(-1, 8)"),
     (0x29, 2, 32767, "manual lshr(-1, 1)"),
-    (0x29, 3, -1, "lshr_int(-1, 16)"),
-    (0x29, 4, 1, "lshr_int(INT_MIN, 31)"),
-    (0x29, 5, 16384, "lshr_int(INT_MIN, 1)/65536"),
+    (0x29, 3, -1, "__builtin_lshr_int(-1, 16)"),
+    (0x29, 4, 1, "__builtin_lshr_int(INT_MIN, 31)"),
+    (0x29, 5, 16384, "__builtin_lshr_int(INT_MIN, 1)/65536"),
 
     # === INS 0x2A: Hex literals ===
     (0x2A, 0, 32767, "0x7FFF"),

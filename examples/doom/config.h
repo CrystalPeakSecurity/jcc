@@ -2,4 +2,4 @@
 
 #pragma once
 
-#define doom_memset(arr, val, len) memset_byte(arr, val, len)
+#define doom_memset(arr, val, len) memset_bytes(arr, val, len)

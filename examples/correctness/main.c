@@ -26,6 +26,20 @@
 
 #include "jcc.h"
 
+#define READ_SHORT(buf, off) \
+    ((short)(((buf[(off)] & 0xFF) << 8) | (buf[(off)+1] & 0xFF)))
+#define READ_INT(buf, off) \
+    ((((buf[(off)] & 0xFF) << 24) | ((buf[(off)+1] & 0xFF) << 16) \
+    | ((buf[(off)+2] & 0xFF) << 8) | (buf[(off)+3] & 0xFF)))
+#define WRITE_SHORT(buf, off, val) \
+    (buf)[off++] = (byte)((val) >> 8); \
+    (buf)[off++] = (byte)(val)
+#define WRITE_INT(buf, off, val) \
+    (buf)[off++] = (byte)((val) >> 24); \
+    (buf)[off++] = (byte)((val) >> 16); \
+    (buf)[off++] = (byte)((val) >> 8); \
+    (buf)[off++] = (byte)(val)
+
 // Default: enable all sections if none specified
 #if !defined(ENABLE_MINIMAL) && !defined(ENABLE_BASELINE_1) && !defined(ENABLE_BASELINE_2) && \
     !defined(ENABLE_NEW_1) && !defined(ENABLE_NEW_2) && \
@@ -63,8 +77,8 @@
 // Global state for testing
 // =============================================================================
 
-// shared_fb must be first for memset_byte intrinsic (requires offset 0 in MEM_B)
-// All memset_byte tests use this array (g_bytes is an alias for compatibility)
+// shared_fb must be first for memset_bytes intrinsic (requires offset 0 in MEM_B)
+// All memset_bytes tests use this array (g_bytes is an alias for compatibility)
 #define SHARED_FB_SIZE 80
 byte shared_fb[SHARED_FB_SIZE];
 
@@ -96,9 +110,9 @@ const int LOOKUP[] = { 100000, 200000 };
 void sendResult(APDU apdu, byte* buffer, short result) {
     buffer[0] = (byte)(result >> 8);
     buffer[1] = (byte)result;
-    apduSetOutgoing(apdu);
-    apduSetOutgoingLength(apdu, 2);
-    apduSendBytes(apdu, 0, 2);
+    jc_APDU_setOutgoing(apdu);
+    jc_APDU_setOutgoingLength(apdu, 2);
+    jc_APDU_sendBytes(apdu, 0, 2);
 }
 
 // =============================================================================
@@ -617,12 +631,12 @@ void test_lshr(APDU apdu, byte* buffer, byte p1) {
 
     if (p1 == 3) {
         i = INT_MIN;
-        sendResult(apdu, buffer, (short)(lshr_int(i, 1) / 65536));  // 16384
+        sendResult(apdu, buffer, (short)(__builtin_lshr_int(i, 1) / 65536));  // 16384
         return;
     }
     if (p1 == 4) {
         i = -1;
-        sendResult(apdu, buffer, (short)lshr_int(i, 16));  // -1 (0xFFFF)
+        sendResult(apdu, buffer, (short)__builtin_lshr_int(i, 16));  // -1 (0xFFFF)
         return;
     }
     sendResult(apdu, buffer, -1);
@@ -1314,13 +1328,13 @@ void test_memset(APDU apdu, byte* buffer, byte p1) {
 
     if (p1 == 0) {
         // Basic memset
-        memset_byte(g_bytes, 42, 8);
+        memset_bytes(g_bytes, 42, 8);
         sendResult(apdu, buffer, g_bytes[0]);  // 42
         return;
     }
     if (p1 == 1) {
         // Verify all filled
-        memset_byte(g_bytes, 99, 8);
+        memset_bytes(g_bytes, 99, 8);
         short ok = 1;
         for (i = 0; i < 8; i = i + 1) {
             if (g_bytes[i] != 99) ok = 0;
@@ -1330,41 +1344,41 @@ void test_memset(APDU apdu, byte* buffer, byte p1) {
     }
     if (p1 == 2) {
         // Partial fill
-        memset_byte(g_bytes, 0, 8);
-        memset_byte(g_bytes, 55, 4);
+        memset_bytes(g_bytes, 0, 8);
+        memset_bytes(g_bytes, 55, 4);
         sendResult(apdu, buffer, g_bytes[3]);  // 55
         return;
     }
     if (p1 == 3) {
         // Check unfilled part
-        memset_byte(g_bytes, 0, 8);
-        memset_byte(g_bytes, 55, 4);
+        memset_bytes(g_bytes, 0, 8);
+        memset_bytes(g_bytes, 55, 4);
         sendResult(apdu, buffer, g_bytes[4]);  // 0
         return;
     }
     if (p1 == 4) {
-        // memset_at with offset
-        memset_byte(g_bytes, 0, 8);
-        memset_at(g_bytes, 2, 77, 4);
+        // memset_bytes_at with offset
+        memset_bytes(g_bytes, 0, 8);
+        memset_bytes_at(g_bytes, 2, 77, 4);
         sendResult(apdu, buffer, g_bytes[2]);  // 77
         return;
     }
     if (p1 == 5) {
         // Check before offset
-        memset_byte(g_bytes, 0, 8);
-        memset_at(g_bytes, 2, 77, 4);
+        memset_bytes(g_bytes, 0, 8);
+        memset_bytes_at(g_bytes, 2, 77, 4);
         sendResult(apdu, buffer, g_bytes[1]);  // 0
         return;
     }
     if (p1 == 6) {
         // Fill with 0xFF (-1 as signed byte)
-        memset_byte(g_bytes, -1, 8);
+        memset_bytes(g_bytes, -1, 8);
         sendResult(apdu, buffer, g_bytes[0]);  // -1
         return;
     }
     if (p1 == 7) {
         // Fill with 0
-        memset_byte(g_bytes, 0, 8);
+        memset_bytes(g_bytes, 0, 8);
         sendResult(apdu, buffer, g_bytes[7]);  // 0
         return;
     }
@@ -1687,9 +1701,9 @@ void test_signed_shifts(APDU apdu, byte* buffer, byte p1) {
     }
     if (p1 == 4) { s = -1; sendResult(apdu, buffer, s >> 15); return; }              // -1
     if (p1 == 5) {
-        // Logical shift via lshr_int
+        // Logical shift via __builtin_lshr_int
         i = -1;
-        sendResult(apdu, buffer, (short)lshr_int(i, 31));                            // 1
+        sendResult(apdu, buffer, (short)__builtin_lshr_int(i, 31));                            // 1
         return;
     }
     if (p1 == 6) {
@@ -1725,7 +1739,7 @@ void test_signed_shifts(APDU apdu, byte* buffer, byte p1) {
     if (p1 == 11) {
         // Logical shift of 0x80000000
         i = 0x80000000;
-        sendResult(apdu, buffer, (short)(lshr_int(i, 1) >> 16));                     // 0x4000 = 16384
+        sendResult(apdu, buffer, (short)(__builtin_lshr_int(i, 1) >> 16));                     // 0x4000 = 16384
         return;
     }
     sendResult(apdu, buffer, -1);
@@ -2827,66 +2841,66 @@ void test_array_fill(APDU apdu, byte* buffer, byte p1) {
     short sum;
 
     if (p1 == 0) {
-        memset_byte(shared_fb, 0, 80);
+        memset_bytes(shared_fb, 0, 80);
         sendResult(apdu, buffer, shared_fb[0]);  // 0
         return;
     }
     if (p1 == 1) {
-        memset_byte(shared_fb, 0, 80);
+        memset_bytes(shared_fb, 0, 80);
         sendResult(apdu, buffer, shared_fb[79]);  // 0
         return;
     }
     if (p1 == 2) {
-        memset_byte(shared_fb, 0x42, 80);
+        memset_bytes(shared_fb, 0x42, 80);
         sendResult(apdu, buffer, shared_fb[0]);  // 66
         return;
     }
     if (p1 == 3) {
-        memset_byte(shared_fb, -1, 80);
+        memset_bytes(shared_fb, -1, 80);
         sendResult(apdu, buffer, shared_fb[0]);  // -1
         return;
     }
     if (p1 == 4) {
-        memset_byte(shared_fb, -128, 80);
+        memset_bytes(shared_fb, -128, 80);
         sendResult(apdu, buffer, shared_fb[0]);  // -128
         return;
     }
     if (p1 == 5) {
-        memset_byte(shared_fb, 127, 80);
+        memset_bytes(shared_fb, 127, 80);
         sendResult(apdu, buffer, shared_fb[0]);  // 127
         return;
     }
     if (p1 == 6) {
-        // memset_at: byte before region
-        memset_byte(shared_fb, 0, 80);
-        memset_at(shared_fb, 10, 0x33, 5);
+        // memset_bytes_at: byte before region
+        memset_bytes(shared_fb, 0, 80);
+        memset_bytes_at(shared_fb, 10, 0x33, 5);
         sendResult(apdu, buffer, shared_fb[9]);  // 0
         return;
     }
     if (p1 == 7) {
-        // memset_at: first byte of region
-        memset_byte(shared_fb, 0, 80);
-        memset_at(shared_fb, 10, 0x33, 5);
+        // memset_bytes_at: first byte of region
+        memset_bytes(shared_fb, 0, 80);
+        memset_bytes_at(shared_fb, 10, 0x33, 5);
         sendResult(apdu, buffer, shared_fb[10]);  // 51
         return;
     }
     if (p1 == 8) {
-        // memset_at: last byte of region
-        memset_byte(shared_fb, 0, 80);
-        memset_at(shared_fb, 10, 0x33, 5);
+        // memset_bytes_at: last byte of region
+        memset_bytes(shared_fb, 0, 80);
+        memset_bytes_at(shared_fb, 10, 0x33, 5);
         sendResult(apdu, buffer, shared_fb[14]);  // 51
         return;
     }
     if (p1 == 9) {
-        // memset_at: byte after region
-        memset_byte(shared_fb, 0, 80);
-        memset_at(shared_fb, 10, 0x33, 5);
+        // memset_bytes_at: byte after region
+        memset_bytes(shared_fb, 0, 80);
+        memset_bytes_at(shared_fb, 10, 0x33, 5);
         sendResult(apdu, buffer, shared_fb[15]);  // 0
         return;
     }
     if (p1 == 10) {
         // Fill 80 bytes with 0, sum all
-        memset_byte(shared_fb, 0, 80);
+        memset_bytes(shared_fb, 0, 80);
         sum = 0;
         for (i = 0; i < 80; i = i + 1) {
             sum = sum + shared_fb[i];
@@ -2896,7 +2910,7 @@ void test_array_fill(APDU apdu, byte* buffer, byte p1) {
     }
     if (p1 == 11) {
         // Fill 80 bytes with 1, sum first 10
-        memset_byte(shared_fb, 1, 80);
+        memset_bytes(shared_fb, 1, 80);
         sum = 0;
         for (i = 0; i < 10; i = i + 1) {
             sum = sum + shared_fb[i];
@@ -3047,7 +3061,7 @@ void test_array_xor(APDU apdu, byte* buffer, byte p1) {
     if (p1 == 7) {
         // XOR 8 bytes of 0xFF (even count → 0)
         short i;
-        memset_byte(shared_fb, -1, 8);
+        memset_bytes(shared_fb, -1, 8);
         short acc = 0;
         for (i = 0; i < 8; i = i + 1) {
             acc = acc ^ (shared_fb[i] & 0xFF);
@@ -3122,13 +3136,13 @@ void test_rle_decode(APDU apdu, byte* buffer, byte p1) {
     }
     if (p1 == 4) {
         // Apple frame 0: RLE fill 80 bytes with 0, verify sum
-        memset_byte(shared_fb, -1, 80);  // pre-fill 0xFF
+        memset_bytes(shared_fb, -1, 80);  // pre-fill 0xFF
         shared_fb[0] = (byte)0xCD;
         shared_fb[1] = (byte)0x00;
         short ctrl = shared_fb[0] & 0xFF;
         count = (ctrl & 0x7F) + 3;
         value = shared_fb[1];
-        memset_at(shared_fb, 0, (byte)value, count);
+        memset_bytes_at(shared_fb, 0, (byte)value, count);
         sum = 0;
         for (i = 0; i < 80; i = i + 1) {
             sum = sum + shared_fb[i];
@@ -3138,8 +3152,8 @@ void test_rle_decode(APDU apdu, byte* buffer, byte p1) {
     }
     if (p1 == 5) {
         // RLE fill with 0x42, sum first 4
-        memset_byte(shared_fb, 0, 80);
-        memset_at(shared_fb, 0, 0x42, 80);
+        memset_bytes(shared_fb, 0, 80);
+        memset_bytes_at(shared_fb, 0, 0x42, 80);
         sum = 0;
         for (i = 0; i < 4; i = i + 1) {
             sum = sum + (shared_fb[i] & 0xFF);
@@ -3149,7 +3163,7 @@ void test_rle_decode(APDU apdu, byte* buffer, byte p1) {
     }
     if (p1 == 6) {
         // Literal copy: 3 bytes, sum
-        memset_byte(shared_fb, 0, 80);
+        memset_bytes(shared_fb, 0, 80);
         shared_fb[0] = (byte)0x0A;
         shared_fb[1] = (byte)0x0B;
         shared_fb[2] = (byte)0x0C;
@@ -3168,7 +3182,7 @@ void test_rle_decode(APDU apdu, byte* buffer, byte p1) {
         short ctrl = APPLE_FRAME_DATA[0] & 0xFF;
         count = (ctrl & 0x7F) + 3;
         value = APPLE_FRAME_DATA[1];
-        memset_at(shared_fb, 0, (byte)value, count);
+        memset_bytes_at(shared_fb, 0, (byte)value, count);
         sendResult(apdu, buffer, shared_fb[0]);  // 0
         return;
     }
@@ -3177,7 +3191,7 @@ void test_rle_decode(APDU apdu, byte* buffer, byte p1) {
         short ctrl = APPLE_FRAME_DATA[0] & 0xFF;
         count = (ctrl & 0x7F) + 3;
         value = APPLE_FRAME_DATA[1];
-        memset_at(shared_fb, 0, (byte)value, count);
+        memset_bytes_at(shared_fb, 0, (byte)value, count);
         short ok = 1;
         for (i = 0; i < 80; i = i + 1) {
             if (shared_fb[i] != 0) ok = 0;
@@ -3193,7 +3207,7 @@ void test_rle_decode(APDU apdu, byte* buffer, byte p1) {
 // =============================================================================
 
 void helper_fill_array(byte val, short len) {
-    memset_byte(shared_fb, val, len);
+    memset_bytes(shared_fb, val, len);
 }
 
 short helper_sum_array(short len) {
@@ -3246,7 +3260,7 @@ void test_multi_func_array(APDU apdu, byte* buffer, byte p1) {
     if (p1 == 5) {
         // Fill 0xFF, then partial fill 0, sum unsigned
         helper_fill_array(-1, 10);
-        memset_at(shared_fb, 0, 0, 5);
+        memset_bytes_at(shared_fb, 0, 0, 5);
         sendResult(apdu, buffer, helper_sum_array(10));  // 1275
         return;
     }
@@ -3350,42 +3364,42 @@ void test_getshort(APDU apdu, byte* buffer, byte p1) {
         // {0, 1} → 1
         shared_fb[0] = 0;
         shared_fb[1] = 1;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 0));  // 1
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 1
         return;
     }
     if (p1 == 1) {
         // {1, 0} → 256
         shared_fb[0] = 1;
         shared_fb[1] = 0;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 0));  // 256
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 256
         return;
     }
     if (p1 == 2) {
         // {0x7F, 0xFF} → 32767
         shared_fb[0] = (byte)0x7F;
         shared_fb[1] = (byte)0xFF;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 0));  // 32767
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 32767
         return;
     }
     if (p1 == 3) {
         // {0x80, 0x00} → -32768
         shared_fb[0] = (byte)0x80;
         shared_fb[1] = (byte)0x00;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 0));  // -32768
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // -32768
         return;
     }
     if (p1 == 4) {
         // {0xFF, 0xFF} → -1
         shared_fb[0] = (byte)0xFF;
         shared_fb[1] = (byte)0xFF;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 0));  // -1
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // -1
         return;
     }
     if (p1 == 5) {
         // getShort at offset 2
         shared_fb[2] = 0;
         shared_fb[3] = 42;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 2));  // 42
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 2));  // 42
         return;
     }
     if (p1 == 6) {
@@ -3393,7 +3407,7 @@ void test_getshort(APDU apdu, byte* buffer, byte p1) {
         short val = 12345;
         shared_fb[0] = (byte)(val >> 8);
         shared_fb[1] = (byte)val;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 0));  // 12345
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 12345
         return;
     }
     if (p1 == 7) {
@@ -3401,7 +3415,7 @@ void test_getshort(APDU apdu, byte* buffer, byte p1) {
         short val = -12345;
         shared_fb[0] = (byte)(val >> 8);
         shared_fb[1] = (byte)val;
-        sendResult(apdu, buffer, util_getshort(shared_fb, 0));  // -12345
+        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // -12345
         return;
     }
     sendResult(apdu, buffer, -1);
@@ -3497,19 +3511,19 @@ short compute_checksum(short len) {
 void test_array_checksum(APDU apdu, byte* buffer, byte p1) {
     if (p1 == 0) {
         // Fill 0, checksum 80 bytes
-        memset_byte(shared_fb, 0, 80);
+        memset_bytes(shared_fb, 0, 80);
         sendResult(apdu, buffer, compute_checksum(80));  // 0
         return;
     }
     if (p1 == 1) {
         // Fill 1, checksum 80 bytes
-        memset_byte(shared_fb, 1, 80);
+        memset_bytes(shared_fb, 1, 80);
         sendResult(apdu, buffer, compute_checksum(80));  // 80
         return;
     }
     if (p1 == 2) {
         // Fill 0xFF, checksum first 10
-        memset_byte(shared_fb, -1, 80);
+        memset_bytes(shared_fb, -1, 80);
         short sum = 0;
         short i;
         for (i = 0; i < 10; i = i + 1) {
@@ -4189,7 +4203,7 @@ void test_zext(APDU apdu, byte* buffer, byte p1) {
 // =============================================================================
 
 void process(APDU apdu, short len) {
-    byte* buffer = apduGetBuffer(apdu);
+    byte* buffer = jc_APDU_getBuffer(apdu);
     byte ins = buffer[APDU_INS];
     byte p1 = buffer[APDU_P1];
 
@@ -4320,5 +4334,5 @@ void process(APDU apdu, short len) {
     // Zero extension tests (no ifdef — always enabled)
     if (ins == 0x70) { test_zext(apdu, buffer, p1); return; }
 
-    throwError(SW_WRONG_INS);
+    jc_ISOException_throwIt(SW_WRONG_INS);
 }

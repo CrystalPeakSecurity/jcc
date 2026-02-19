@@ -7,7 +7,7 @@
 #define RENDER_FB_HEIGHT 8
 #define RENDER_FB_SIZE 32
 
-// Uses shared_fb from main.c (must be at offset 0 for memset_byte)
+// Uses shared_fb from main.c (must be at offset 0 for memset_bytes)
 #define render_fb shared_fb
 
 // 3x3 sprite data (0b00000111 each row)
@@ -97,26 +97,26 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Clear framebuffer
     if (p1 == 0) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         sendResult(apdu, buffer, render_checksum());                              // 0
         return;
     }
 
     // Single pixel rendering
     if (p1 == 1) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         render_setPixel(0, 0, 1);
         sendResult(apdu, buffer, render_fb[0] & 0xFF);                            // 0x80 = 128
         return;
     }
     if (p1 == 2) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         render_setPixel(7, 0, 1);
         sendResult(apdu, buffer, render_fb[0] & 0xFF);                            // 0x01 = 1
         return;
     }
     if (p1 == 3) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         render_setPixel(8, 0, 1);  // Second byte
         sendResult(apdu, buffer, render_fb[1] & 0xFF);                            // 0x80 = 128
         return;
@@ -124,20 +124,20 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Sprite rendering at aligned position
     if (p1 == 4) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(0, 0, 3);
         // 3 rows of 0xE0 at bytes 0, 4, 8
         sendResult(apdu, buffer, render_fb[0] & 0xFF);                            // 0xE0 = 224
         return;
     }
     if (p1 == 5) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(0, 0, 3);
         sendResult(apdu, buffer, render_fb[4] & 0xFF);                            // 0xE0 = 224
         return;
     }
     if (p1 == 6) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(0, 0, 3);
         sendResult(apdu, buffer, render_checksum());                              // 224 * 3 = 672
         return;
@@ -145,14 +145,14 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Sprite at unaligned position (within byte)
     if (p1 == 7) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(3, 0, 3);
         // shift = 5 - 3 = 2, mask = 0x07 << 2 = 0x1C
         sendResult(apdu, buffer, render_fb[0] & 0xFF);                            // 0x1C = 28
         return;
     }
     if (p1 == 8) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(5, 0, 3);
         // shift = 5 - 5 = 0, mask = 0x07
         sendResult(apdu, buffer, render_fb[0] & 0xFF);                            // 0x07 = 7
@@ -161,7 +161,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Sprite spanning byte boundary
     if (p1 == 9) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(6, 0, 3);
         // xBit=6 > 5, shift = 1
         // mask1 = 0x07 >> 1 = 0x03, mask2 = 0x07 << 7 = 0x80
@@ -169,13 +169,13 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
         return;
     }
     if (p1 == 10) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(6, 0, 3);
         sendResult(apdu, buffer, render_fb[1] & 0xFF);                            // 0x80 = 128
         return;
     }
     if (p1 == 11) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(7, 0, 3);
         // xBit=7, shift = 2
         // mask1 = 0x07 >> 2 = 0x01, mask2 = 0x07 << 6 = 0xC0
@@ -183,7 +183,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
         return;
     }
     if (p1 == 12) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(7, 0, 3);
         sendResult(apdu, buffer, render_fb[1] & 0xFF);                            // 0xC0 = 192
         return;
@@ -191,7 +191,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Multiple sprites (like game objects)
     if (p1 == 13) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(0, 0, 3);
         draw_sprite(10, 2, 3);
         sendResult(apdu, buffer, render_checksum());                              // Sum of both sprites
@@ -200,7 +200,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Sprite with vertical offset
     if (p1 == 14) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(0, 2, 3);
         // Row 2 -> byteIdx starts at 8
         sendResult(apdu, buffer, render_fb[8] & 0xFF);                            // 0xE0 = 224
@@ -209,7 +209,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Font rendering (single digit)
     if (p1 == 15) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         digit = 0;
         x = 0; y = 0;
         xBit = (byte)(x & 7);
@@ -226,7 +226,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
         return;
     }
     if (p1 == 16) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         digit = 0;
         x = 0; y = 0;
         xBit = (byte)(x & 7);
@@ -243,7 +243,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Font rendering digit 1
     if (p1 == 17) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         digit = 1;
         x = 0; y = 0;
         xBit = (byte)(x & 7);
@@ -262,7 +262,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Render a number like drawNumber
     if (p1 == 18) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         num = 42;
         // Extract digits
         short d0 = num % 10;  // 2
@@ -292,7 +292,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Full render cycle: clear, draw sprite, draw score
     if (p1 == 19) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         // Draw "bird" at (8, 2)
         draw_sprite(8, 2, 3);
         // Draw score "5" at (0, 0)
@@ -312,7 +312,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
 
     // Verify buffer isolation (byte boundaries)
     if (p1 == 20) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         // Draw at x=24 (byte 3)
         draw_sprite(24, 0, 3);
         // Should only affect bytes 3, 7, 11
@@ -320,7 +320,7 @@ void test_rendering(APDU apdu, byte* buffer, byte p1) {
         return;
     }
     if (p1 == 21) {
-        memset_byte(render_fb, 0, RENDER_FB_SIZE);
+        memset_bytes(render_fb, 0, RENDER_FB_SIZE);
         draw_sprite(24, 0, 3);
         sendResult(apdu, buffer, render_fb[3] & 0xFF);                            // 0xE0 = 224
         return;

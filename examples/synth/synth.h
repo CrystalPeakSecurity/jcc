@@ -7,7 +7,7 @@
 #define AUDIO_BUFFER_SIZE 512
 
 static byte
-    audio_buffer[AUDIO_BUFFER_SIZE]; // must be first for apduSendBytesLong
+    audio_buffer[AUDIO_BUFFER_SIZE]; // must be first for jc_APDU_sendBytesLong
 
 // Forward declarations for cross-header references
 static byte fast_note;
@@ -143,7 +143,7 @@ void synth_generate_fast(void) {
     player_advance(FAST_SAMPLES);
 
     if (op_active[0] == 0) {
-        memset_byte(audio_buffer, 0x00, FAST_BUFFER_SIZE);
+        memset_bytes(audio_buffer, 0x00, FAST_BUFFER_SIZE);
         return;
     }
 

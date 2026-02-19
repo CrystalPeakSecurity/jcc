@@ -1,10 +1,10 @@
 // test_fillrect.h - fillRect patterns from flappy's jcc_fb.h
-// INS 0x51: Tests start/end masks, byte spans, memset_at optimization
+// INS 0x51: Tests start/end masks, byte spans, memset_bytes_at optimization
 
 #pragma once
 
 // Small framebuffer for testing (4 bytes per row, 8 rows = 32 bytes)
-// Uses shared_fb from main.c (must be at offset 0 for memset_byte)
+// Uses shared_fb from main.c (must be at offset 0 for memset_bytes)
 #define TEST_FB_WIDTH 32
 #define TEST_FB_HEIGHT 8
 #define TEST_FB_ROW_BYTES 4
@@ -162,7 +162,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
         return;
     }
 
-    // Full-width optimization: memset_at length calculation
+    // Full-width optimization: memset_bytes_at length calculation
     // length = (y1 - y0 + 1) << 2
     if (p1 == 18) {
         y0 = 0; y1 = 0;
@@ -180,32 +180,32 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
     // Actual framebuffer operations
     // Clear entire fb
     if (p1 == 20) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         sendResult(apdu, buffer, fb_checksum());                                  // 0
         return;
     }
 
     // Fill single row fully
     if (p1 == 21) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         y = 0;
-        memset_at(test_fb, y << 2, 0xFF, TEST_FB_ROW_BYTES);
+        memset_bytes_at(test_fb, y << 2, 0xFF, TEST_FB_ROW_BYTES);
         sendResult(apdu, buffer, fb_checksum());                                  // 255 * 4 = 1020
         return;
     }
 
     // Fill full width, multiple rows
     if (p1 == 22) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         y0 = 2; y1 = 4;
-        memset_at(test_fb, y0 << 2, 0xFF, (y1 - y0 + 1) << 2);
+        memset_bytes_at(test_fb, y0 << 2, 0xFF, (y1 - y0 + 1) << 2);
         sendResult(apdu, buffer, fb_checksum());                                  // 255 * 12 = 3060
         return;
     }
 
     // Single byte partial fill (OR operation)
     if (p1 == 23) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         x0 = 2; x1 = 5;
         startMask = (byte)(0xFF >> (x0 & 7));
         endMask = (byte)(0xFF << (7 - (x1 & 7)));
@@ -217,7 +217,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
 
     // Multi-byte fill: partial start, full middle, partial end
     if (p1 == 24) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         // Fill x=4 to x=19 in row 0
         x0 = 4; x1 = 19;
         y = 0;
@@ -230,7 +230,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
         test_fb[rowBase + startByte] |= startMask;  // 0x0F
         middleBytes = endByte - startByte - 1;      // 1
         if (middleBytes > 0) {
-            memset_at(test_fb, rowBase + startByte + 1, 0xFF, middleBytes);
+            memset_bytes_at(test_fb, rowBase + startByte + 1, 0xFF, middleBytes);
         }
         test_fb[rowBase + endByte] |= endMask;      // 0xF0
 
@@ -240,7 +240,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
 
     // Clear operation (AND with ~mask)
     if (p1 == 25) {
-        memset_byte(test_fb, 0xFF, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0xFF, TEST_FB_SIZE);
         x0 = 2; x1 = 5;
         startMask = (byte)(0xFF >> (x0 & 7));
         endMask = (byte)(0xFF << (7 - (x1 & 7)));
@@ -252,7 +252,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
 
     // Full rect: multiple rows, spans 3 bytes
     if (p1 == 26) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         // Fill rect x=4..19, y=1..2
         x0 = 4; x1 = 19;
         y0 = 1; y1 = 2;
@@ -266,7 +266,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
             rowBase = y << 2;
             test_fb[rowBase + startByte] |= startMask;
             if (middleBytes > 0) {
-                memset_at(test_fb, rowBase + startByte + 1, 0xFF, middleBytes);
+                memset_bytes_at(test_fb, rowBase + startByte + 1, 0xFF, middleBytes);
             }
             test_fb[rowBase + endByte] |= endMask;
         }
@@ -277,7 +277,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
 
     // Edge case: x0 == x1 (single pixel)
     if (p1 == 27) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         x0 = 5; x1 = 5;
         startMask = (byte)(0xFF >> (x0 & 7));  // 0x07
         endMask = (byte)(0xFF << (7 - (x1 & 7)));  // 0xFC
@@ -289,7 +289,7 @@ void test_fillrect(APDU apdu, byte* buffer, byte p1) {
 
     // Verify byte boundaries: fill byte 1 fully via masks
     if (p1 == 28) {
-        memset_byte(test_fb, 0, TEST_FB_SIZE);
+        memset_bytes(test_fb, 0, TEST_FB_SIZE);
         x0 = 8; x1 = 15;  // Exactly byte 1
         startByte = x0 >> 3;  // 1
         endByte = x1 >> 3;    // 1

@@ -19,7 +19,7 @@
 
 byte framebuffer[FB_SIZE];
 
-void clearFB(void) { memset_byte(framebuffer, 0, FB_SIZE); }
+void clearFB(void) { memset_bytes(framebuffer, 0, FB_SIZE); }
 
 // Masks for partial-byte pixel writes (2bpp, 4 pixels per byte)
 // top_mask: from y%4 position to end of byte
@@ -91,6 +91,6 @@ void fillVerticalColumn(short x, short y1, short y2, byte fill) {
     // Full bytes in middle
     full_len = full_end - full_start + 1;
     if (full_len > 0) {
-        memset_at(framebuffer, col_base + full_start, fill, full_len);
+        memset_bytes_at(framebuffer, col_base + full_start, fill, full_len);
     }
 }

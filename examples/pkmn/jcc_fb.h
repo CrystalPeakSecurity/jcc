@@ -22,13 +22,13 @@
 #define COL_UI_BORDER 14
 #define COL_BLOCKED 15
 
-// Must be first global for apduSendBytesLong to work
+// Must be first global for jc_APDU_sendBytesLong to work
 byte framebuffer[FB_SIZE];
 
 void clearFB(byte color) {
     byte fill = (byte)(((color & 0x0F) << 4) |
                        (color & 0x0F)); // jcc:ignore-sign-extension
-    memset_byte(framebuffer, fill, FB_SIZE);
+    memset_bytes(framebuffer, fill, FB_SIZE);
 }
 
 void setPixel(short x, short y, byte color) {
@@ -87,7 +87,7 @@ void hline(short x0, short x1, short y, byte color) {
     numBytes = (x1 - x + 1) >> 1; // jcc:ignore-sign-extension
     if (numBytes > 0) {
         startByte = rowBase + (x >> 1); // jcc:ignore-sign-extension
-        memset_at(framebuffer, startByte, fill, numBytes);
+        memset_bytes_at(framebuffer, startByte, fill, numBytes);
         x = x + (numBytes << 1);
     }
 
@@ -130,7 +130,7 @@ void fillRect(short x0, short y0, short x1, short y1, byte color) {
         startByte = (y0 << 4) + (y0 << 3); // jcc:ignore-sign-extension
         totalBytes = ((y1 - y0 + 1) << 4) +
                      ((y1 - y0 + 1) << 3); // jcc:ignore-sign-extension
-        memset_at(framebuffer, startByte, fill, totalBytes);
+        memset_bytes_at(framebuffer, startByte, fill, totalBytes);
         return;
     }
 
@@ -146,7 +146,7 @@ void fillRect(short x0, short y0, short x1, short y1, byte color) {
         numBytes = (x1 - x + 1) >> 1; // jcc:ignore-sign-extension
         if (numBytes > 0) {
             startByte = rowBase + (x >> 1); // jcc:ignore-sign-extension
-            memset_at(framebuffer, startByte, fill, numBytes);
+            memset_bytes_at(framebuffer, startByte, fill, numBytes);
             x = x + (numBytes << 1);
         }
 

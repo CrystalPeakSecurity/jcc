@@ -22,6 +22,6 @@
 #define COLOR_LIGHT 2 // 10
 #define COLOR_WHITE 3 // 11
 
-void clearFB(void) { memset_at(response_buffer, FB_OFFSET, 0, FB_SIZE); }
+void clearFB(void) { memset_bytes_at(response_buffer, FB_OFFSET, 0, FB_SIZE); }
 
 #endif // JCC_FB_H

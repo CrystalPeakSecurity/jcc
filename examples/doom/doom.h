@@ -6,6 +6,12 @@
 #include "jcc_fb.h"
 #include "math.h"
 
+#define READ_SHORT(buf, off) \
+    ((short)(((buf[(off)] & 0xFF) << 8) | (buf[(off)+1] & 0xFF)))
+#define WRITE_SHORT(buf, off, val) \
+    (buf)[off++] = (byte)((val) >> 8); \
+    (buf)[off++] = (byte)(val)
+
 // Screen projection
 #define CENTERX (SCREEN_WIDTH / 2)
 #define CENTERY (SCREEN_HEIGHT / 2)

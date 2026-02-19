@@ -47,7 +47,7 @@ void synth_generate_fast(void) {
     // Play if note is active OR if any note was triggered this tick
     // (handles short notes that start and end within same tick)
     if (op_active == 0 && tick_had_note == 0) {
-        memset_at(response_buffer, AUDIO_OFFSET, 0x00, AUDIO_BUFFER_SIZE);
+        memset_bytes_at(response_buffer, AUDIO_OFFSET, 0x00, AUDIO_BUFFER_SIZE);
         return;
     }
     tick_had_note = 0;  // Reset for next tick

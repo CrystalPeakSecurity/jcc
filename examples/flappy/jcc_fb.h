@@ -7,10 +7,10 @@
 #define COLOR_BLACK 0
 #define COLOR_WHITE 1
 
-// Framebuffer MUST be first global for apduSendBytesLong to work
+// Framebuffer MUST be first global for jc_APDU_sendBytesLong to work
 byte framebuffer[FB_SIZE];
 
-void clearFB(void) { memset_byte(framebuffer, 0, FB_SIZE); }
+void clearFB(void) { memset_bytes(framebuffer, 0, FB_SIZE); }
 
 void setPixel(short x, short y, byte color) {
     short byteIdx;
@@ -92,7 +92,7 @@ void fillRect(short x0, short y0, short x1, short y1, byte color) {
     fillByte = color ? (byte)0xFF : (byte)0x00;
 
     if (x0 == 0 && x1 == SCREEN_WIDTH - 1) {
-        memset_at(framebuffer, (y0 << 2), fillByte, (y1 - y0 + 1) << 2);
+        memset_bytes_at(framebuffer, (y0 << 2), fillByte, (y1 - y0 + 1) << 2);
         return;
     }
 
@@ -114,7 +114,7 @@ void fillRect(short x0, short y0, short x1, short y1, byte color) {
                 framebuffer[rowBase + startByte] &= (byte)~startMask;
 
             if (middleBytes > 0) {
-                memset_at(framebuffer, rowBase + startByte + 1, fillByte,
+                memset_bytes_at(framebuffer, rowBase + startByte + 1, fillByte,
                           middleBytes);
             }
 

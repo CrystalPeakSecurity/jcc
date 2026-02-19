@@ -8,7 +8,7 @@
 
 #include "jcc.h"
 
-// Combined response buffer - MUST be first for apduSendBytesLong
+// Combined response buffer - MUST be first for jc_APDU_sendBytesLong
 #define RESPONSE_SIZE 416
 byte response_buffer[RESPONSE_SIZE];
 
@@ -66,11 +66,11 @@ void decode_frame(short frame_idx) {
                     count = count - 1;
                 }
             } else {
-                // Repeat run - use memset_at
+                // Repeat run - use memset_bytes_at
                 count = (value & 0x7F) + 3;
                 value = frame_data[src];
                 src = src + 1;
-                memset_at(response_buffer, dst, value, count);
+                memset_bytes_at(response_buffer, dst, value, count);
                 dst = dst + count;
             }
         }
@@ -129,7 +129,7 @@ void decode_frame(short frame_idx) {
             count = (value & 0x7F) + 3;
             value = frame_data[src];
             src = src + 1;
-            memset_at(response_buffer, dst, value, count);
+            memset_bytes_at(response_buffer, dst, value, count);
             dst = dst + count;
         }
     }
@@ -137,7 +137,7 @@ void decode_frame(short frame_idx) {
 }
 
 void process(APDU apdu, short apdu_len) {
-    byte *buffer = apduGetBuffer(apdu);
+    byte *buffer = jc_APDU_getBuffer(apdu);
     byte ins = buffer[1];
     short i;
 
@@ -153,7 +153,7 @@ void process(APDU apdu, short apdu_len) {
         synth_init();
         player_init();
         player_start();
-        APDU_SEND(apdu, 0);
+        jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 0); jc_APDU_sendBytes(apdu, 0, 0);
         return;
     }
 
@@ -168,13 +168,13 @@ void process(APDU apdu, short apdu_len) {
             }
         }
 
-        apduSetOutgoing(apdu);
-        apduSetOutgoingLength(apdu, RESPONSE_SIZE);
-        apduSendBytesLong(apdu, response_buffer, 0, RESPONSE_SIZE);
+        jc_APDU_setOutgoing(apdu);
+        jc_APDU_setOutgoingLength(apdu, RESPONSE_SIZE);
+        jc_APDU_sendBytesLong(apdu, response_buffer, 0, RESPONSE_SIZE);
         return;
     }
 
-    throwError(0x6D00);
+    jc_ISOException_throwIt(0x6D00);
 }
 
 // JCSL simulator workaround

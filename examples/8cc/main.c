@@ -110,9 +110,9 @@ const short INIT_SHORTS[] = { 24, 25, 26 };
 void sendResult(APDU apdu, byte* buffer, short result) {
     buffer[0] = (byte)(result >> 8);
     buffer[1] = (byte)result;
-    apduSetOutgoing(apdu);
-    apduSetOutgoingLength(apdu, 2);
-    apduSendBytes(apdu, 0, 2);
+    jc_APDU_setOutgoing(apdu);
+    jc_APDU_setOutgoingLength(apdu, 2);
+    jc_APDU_sendBytes(apdu, 0, 2);
 }
 
 // =============================================================================
@@ -2451,21 +2451,21 @@ void test_lshr(APDU apdu, byte* buffer, byte p1) {
         sendResult(apdu, buffer, (v >> n) & ((1 << (16 - n)) - 1));  // 0x7FFF = 32767
         return;
     }
-    // lshr_int intrinsic
+    // __builtin_lshr_int intrinsic
     if (p1 == 3) {
         int v = -1;
-        sendResult(apdu, buffer, (short)(lshr_int(v, 16) & 0xFFFF));  // 0xFFFF = -1
+        sendResult(apdu, buffer, (short)(__builtin_lshr_int(v, 16) & 0xFFFF));  // 0xFFFF = -1
         return;
     }
     if (p1 == 4) {
         int v = -2147483647 - 1;  // INT_MIN
-        sendResult(apdu, buffer, (short)(lshr_int(v, 31)));  // 1
+        sendResult(apdu, buffer, (short)(__builtin_lshr_int(v, 31)));  // 1
         return;
     }
-    // lshr_int(INT_MIN, 1) → positive
+    // __builtin_lshr_int(INT_MIN, 1) → positive
     if (p1 == 5) {
         int v = -2147483647 - 1;
-        sendResult(apdu, buffer, (short)(lshr_int(v, 1) / 65536));  // 16384
+        sendResult(apdu, buffer, (short)(__builtin_lshr_int(v, 1) / 65536));  // 16384
         return;
     }
     sendResult(apdu, buffer, -1);
@@ -2524,7 +2524,7 @@ void test_hex(APDU apdu, byte* buffer, byte p1) {
 // =============================================================================
 
 void process(APDU apdu, short len) {
-    byte* buffer = apduGetBuffer(apdu);
+    byte* buffer = jc_APDU_getBuffer(apdu);
     byte ins = buffer[APDU_INS];
     byte p1 = buffer[APDU_P1];
 
@@ -2571,5 +2571,5 @@ void process(APDU apdu, short len) {
     if (ins == 0x29) { test_lshr(apdu, buffer, p1); return; }
     if (ins == 0x2A) { test_hex(apdu, buffer, p1); return; }
 
-    throwError(SW_WRONG_INS);
+    jc_ISOException_throwIt(SW_WRONG_INS);
 }
