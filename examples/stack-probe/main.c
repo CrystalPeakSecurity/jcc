@@ -950,13 +950,13 @@ short test_255(void) {
 }
 
 void process(APDU apdu, short len) {
-    byte* buffer = jc_APDU_getBuffer(apdu);
+    byte* buffer = APDU_getBuffer(apdu);
     short ins = buffer[APDU_INS];
     short slots = READ_SHORT(buffer, 2);  // P1:P2
     short result = 0;
 
     if (ins != 0x01) {
-        jc_ISOException_throwIt(0x6D00);
+        ISOException_throwIt(0x6D00);
         return;
     }
 
@@ -978,12 +978,12 @@ void process(APDU apdu, short len) {
         case 191: result = test_191(); break;
         case 255: result = test_255(); break;
         default:
-            jc_ISOException_throwIt(0x6A86);  // Unsupported slot count
+            ISOException_throwIt(0x6A86);  // Unsupported slot count
             return;
     }
 
     // Return the result
     buffer[0] = (byte)(result >> 8);
     buffer[1] = (byte)result;
-    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 2); jc_APDU_sendBytes(apdu, 0, 2);
+    APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 2); APDU_sendBytes(apdu, 0, 2);
 }

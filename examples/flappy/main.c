@@ -10,7 +10,7 @@
 byte game_initialized = 0;
 
 void process(APDU apdu, short apdu_len) {
-    byte *buffer = jc_APDU_getBuffer(apdu);
+    byte *buffer = APDU_getBuffer(apdu);
     byte ins = buffer[1];
 
     if (!game_initialized) {
@@ -20,7 +20,7 @@ void process(APDU apdu, short apdu_len) {
 
     if (ins == INS_RESET) {
         reset_game();
-        jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 0); jc_APDU_sendBytes(apdu, 0, 0);
+        APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 0); APDU_sendBytes(apdu, 0, 0);
         return;
     }
 
@@ -31,13 +31,13 @@ void process(APDU apdu, short apdu_len) {
         clearFB();
         render_game();
 
-        jc_APDU_setOutgoing(apdu);
-        jc_APDU_setOutgoingLength(apdu, FB_SIZE);
-        jc_APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
+        APDU_setOutgoing(apdu);
+        APDU_setOutgoingLength(apdu, FB_SIZE);
+        APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
         return;
     }
 
-    jc_ISOException_throwIt(0x6D00);
+    ISOException_throwIt(0x6D00);
 }
 
 // Workaround for JCSL simulator bug

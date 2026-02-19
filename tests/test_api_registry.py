@@ -102,7 +102,7 @@ class TestAPIRegistryIntrinsicLookup:
         """Look up instance method by C intrinsic name."""
         registry = make_test_registry()
 
-        method = registry.lookup_intrinsic("jc_APDU_getBuffer")
+        method = registry.lookup_intrinsic("__java_javacard_framework_APDU_getBuffer")
         assert method is not None
         assert method.method_name == "getBuffer"
         assert method.class_name == "javacard/framework/APDU"
@@ -112,25 +112,25 @@ class TestAPIRegistryIntrinsicLookup:
         """Look up static method by C intrinsic name."""
         registry = make_test_registry()
 
-        method = registry.lookup_intrinsic("jc_ISOException_throwIt")
+        method = registry.lookup_intrinsic("__java_javacard_framework_ISOException_throwIt")
         assert method is not None
         assert method.method_name == "throwIt"
         assert method.is_static
 
     def test_lookup_no_prefix(self) -> None:
-        """Names without jc_ prefix return None."""
+        """Names without __java_ prefix return None."""
         registry = make_test_registry()
         assert registry.lookup_intrinsic("APDU_getBuffer") is None
 
     def test_lookup_no_underscore(self) -> None:
-        """Names without underscore return None."""
+        """Names without class return None."""
         registry = make_test_registry()
-        assert registry.lookup_intrinsic("jc_something") is None
+        assert registry.lookup_intrinsic("__java_something") is None
 
     def test_lookup_unknown_intrinsic(self) -> None:
         """Unknown intrinsic returns None."""
         registry = make_test_registry()
-        assert registry.lookup_intrinsic("jc_Unknown_method") is None
+        assert registry.lookup_intrinsic("__java_javacard_framework_Unknown_method") is None
 
 
 class TestAPIRegistryGetClass:

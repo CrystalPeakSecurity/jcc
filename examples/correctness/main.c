@@ -110,9 +110,9 @@ const int LOOKUP[] = { 100000, 200000 };
 void sendResult(APDU apdu, byte* buffer, short result) {
     buffer[0] = (byte)(result >> 8);
     buffer[1] = (byte)result;
-    jc_APDU_setOutgoing(apdu);
-    jc_APDU_setOutgoingLength(apdu, 2);
-    jc_APDU_sendBytes(apdu, 0, 2);
+    APDU_setOutgoing(apdu);
+    APDU_setOutgoingLength(apdu, 2);
+    APDU_sendBytes(apdu, 0, 2);
 }
 
 // =============================================================================
@@ -3364,42 +3364,42 @@ void test_getshort(APDU apdu, byte* buffer, byte p1) {
         // {0, 1} → 1
         shared_fb[0] = 0;
         shared_fb[1] = 1;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 1
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 0));  // 1
         return;
     }
     if (p1 == 1) {
         // {1, 0} → 256
         shared_fb[0] = 1;
         shared_fb[1] = 0;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 256
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 0));  // 256
         return;
     }
     if (p1 == 2) {
         // {0x7F, 0xFF} → 32767
         shared_fb[0] = (byte)0x7F;
         shared_fb[1] = (byte)0xFF;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 32767
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 0));  // 32767
         return;
     }
     if (p1 == 3) {
         // {0x80, 0x00} → -32768
         shared_fb[0] = (byte)0x80;
         shared_fb[1] = (byte)0x00;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // -32768
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 0));  // -32768
         return;
     }
     if (p1 == 4) {
         // {0xFF, 0xFF} → -1
         shared_fb[0] = (byte)0xFF;
         shared_fb[1] = (byte)0xFF;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // -1
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 0));  // -1
         return;
     }
     if (p1 == 5) {
         // getShort at offset 2
         shared_fb[2] = 0;
         shared_fb[3] = 42;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 2));  // 42
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 2));  // 42
         return;
     }
     if (p1 == 6) {
@@ -3407,7 +3407,7 @@ void test_getshort(APDU apdu, byte* buffer, byte p1) {
         short val = 12345;
         shared_fb[0] = (byte)(val >> 8);
         shared_fb[1] = (byte)val;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // 12345
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 0));  // 12345
         return;
     }
     if (p1 == 7) {
@@ -3415,7 +3415,7 @@ void test_getshort(APDU apdu, byte* buffer, byte p1) {
         short val = -12345;
         shared_fb[0] = (byte)(val >> 8);
         shared_fb[1] = (byte)val;
-        sendResult(apdu, buffer, jc_Util_getShort(shared_fb, 0));  // -12345
+        sendResult(apdu, buffer, Util_getShort(shared_fb, 0));  // -12345
         return;
     }
     sendResult(apdu, buffer, -1);
@@ -3547,7 +3547,7 @@ void test_array_checksum(APDU apdu, byte* buffer, byte p1) {
     }
     if (p1 == 4) {
         // arrayFillNonAtomic with 0x42, checksum 10
-        jc_Util_arrayFillNonAtomic(shared_fb, 0, 10, (byte)0x42);
+        Util_arrayFillNonAtomic(shared_fb, 0, 10, (byte)0x42);
         short sum = 0;
         short i;
         for (i = 0; i < 10; i = i + 1) {
@@ -3561,7 +3561,7 @@ void test_array_checksum(APDU apdu, byte* buffer, byte p1) {
         short ctrl = APPLE_FRAME_DATA[0] & 0xFF;
         short count = (ctrl & 0x7F) + 3;
         byte fill = APPLE_FRAME_DATA[1];
-        jc_Util_arrayFillNonAtomic(shared_fb, 0, count, fill);
+        Util_arrayFillNonAtomic(shared_fb, 0, count, fill);
         sendResult(apdu, buffer, compute_checksum(80));  // 0
         return;
     }
@@ -4203,7 +4203,7 @@ void test_zext(APDU apdu, byte* buffer, byte p1) {
 // =============================================================================
 
 void process(APDU apdu, short len) {
-    byte* buffer = jc_APDU_getBuffer(apdu);
+    byte* buffer = APDU_getBuffer(apdu);
     byte ins = buffer[APDU_INS];
     byte p1 = buffer[APDU_P1];
 
@@ -4334,5 +4334,5 @@ void process(APDU apdu, short len) {
     // Zero extension tests (no ifdef — always enabled)
     if (ins == 0x70) { test_zext(apdu, buffer, p1); return; }
 
-    jc_ISOException_throwIt(SW_WRONG_INS);
+    ISOException_throwIt(SW_WRONG_INS);
 }

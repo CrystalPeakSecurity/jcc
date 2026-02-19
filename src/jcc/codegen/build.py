@@ -580,7 +580,7 @@ def _build_multibyte_load(
 
     if ty == JCType.INT:
         # Try JCint.getInt first (requires intx)
-        intrinsic = "jc_JCint_getInt"
+        intrinsic = "__java_javacardx_framework_util_intx_JCint_getInt"
         cp_index = ctx.api_method_cp.get(intrinsic)
         if cp_index is not None:
             method = ctx.api.lookup_intrinsic(intrinsic)
@@ -593,7 +593,7 @@ def _build_multibyte_load(
         return _build_int_from_getshort_pair(array_ref, offset, ctx)
 
     if ty == JCType.SHORT:
-        intrinsic = "jc_Util_getShort"
+        intrinsic = "__java_javacard_framework_Util_getShort"
     else:
         raise ValueError(f"Unsupported multi-byte load type: {ty}")
 
@@ -621,7 +621,7 @@ def _build_int_from_getshort_pair(
     Computes: (getShort(buf, off) << 16) | (getShort(buf, off+2) & 0xFFFF)
     """
     assert ctx.api is not None
-    intrinsic = "jc_Util_getShort"
+    intrinsic = "__java_javacard_framework_Util_getShort"
     method = ctx.api.lookup_intrinsic(intrinsic)
     if method is None:
         raise ValueError("Util.getShort not found, required for INT byte-array access without intx")
@@ -758,7 +758,7 @@ def _build_multibyte_store(
 
     if value.ty == JCType.INT:
         # Try JCint.setInt first (requires intx)
-        intrinsic = "jc_JCint_setInt"
+        intrinsic = "__java_javacardx_framework_util_intx_JCint_setInt"
         cp_index = ctx.api_method_cp.get(intrinsic)
         if cp_index is not None:
             method = ctx.api.lookup_intrinsic(intrinsic)
@@ -772,7 +772,7 @@ def _build_multibyte_store(
         return _build_int_setshort_pair(value, array_ref, offset, ctx)
 
     if value.ty == JCType.SHORT:
-        intrinsic = "jc_Util_setShort"
+        intrinsic = "__java_javacard_framework_Util_setShort"
     else:
         raise ValueError(f"Unsupported multi-byte store type: {value.ty}")
 
@@ -804,7 +804,7 @@ def _build_int_setshort_pair(
         setShort(buf, off+2, (short)value)           ; low word
     """
     assert ctx.api is not None
-    intrinsic = "jc_Util_setShort"
+    intrinsic = "__java_javacard_framework_Util_setShort"
     method = ctx.api.lookup_intrinsic(intrinsic)
     if method is None:
         raise ValueError("Util.setShort not found, required for INT byte-array access without intx")
@@ -1011,7 +1011,7 @@ def build_memset_tree(instr: CallInst, ctx: BuildContext) -> TypedExpr | list[Ty
     # For BYTE arrays: use arrayFillNonAtomic (need CP index)
     api_cp_index: int | None = None
     if element_type == JCType.BYTE:
-        api_method_name = "jc_Util_arrayFillNonAtomic"
+        api_method_name = "__java_javacard_framework_Util_arrayFillNonAtomic"
         api_cp_index = ctx.api_method_cp.get(api_method_name)
 
     # Convert byte length to element count for non-byte arrays
@@ -1204,7 +1204,7 @@ def _build_array_copy(
     ctx: BuildContext,
 ) -> TypedExpr:
     """Build Util.arrayCopyNonAtomic call."""
-    api_method_name = "jc_Util_arrayCopyNonAtomic"
+    api_method_name = "__java_javacard_framework_Util_arrayCopyNonAtomic"
     if ctx.api is None:
         raise ValueError("API registry required for memcpy lowering")
 

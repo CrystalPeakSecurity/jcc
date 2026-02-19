@@ -15,7 +15,7 @@
 
 #define DEFAULT_ITERS 1000
 
-// io_buffer must be first for jc_APDU_sendBytesLong (offset 0 in MEM_B)
+// io_buffer must be first for APDU_sendBytesLong (offset 0 in MEM_B)
 byte io_buffer[256];
 
 // Global variables for benchmarks (offheap storage)
@@ -583,7 +583,7 @@ byte bench_memset_native(void) {
 // =============================================================================
 
 void process(APDU apdu, short apdu_len) {
-    byte* buffer = jc_APDU_getBuffer(apdu);
+    byte* buffer = APDU_getBuffer(apdu);
     short ins = buffer[1] & 0xFF;
     byte result;
     short i;
@@ -598,66 +598,66 @@ void process(APDU apdu, short apdu_len) {
     if (g_iters > 10000) g_iters = 10000;
 
     // Dispatch
-    if (ins == INS_NOOP) { buffer[0] = 0; jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_NOOP) { buffer[0] = 0; APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
 
     // Variable access
-    if (ins == INS_LOCAL_SHORT) { buffer[0] = bench_local_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_LOCAL_INT) { buffer[0] = bench_local_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_STATIC_SHORT) { buffer[0] = bench_static_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_STATIC_INT) { buffer[0] = bench_static_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_GLOBAL_SHORT) { buffer[0] = bench_global_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_GLOBAL_INT) { buffer[0] = bench_global_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_ARRAY_SHORT) { buffer[0] = bench_array_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_ARRAY_INT) { buffer[0] = bench_array_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_LOCAL_SHORT) { buffer[0] = bench_local_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_LOCAL_INT) { buffer[0] = bench_local_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_STATIC_SHORT) { buffer[0] = bench_static_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_STATIC_INT) { buffer[0] = bench_static_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_GLOBAL_SHORT) { buffer[0] = bench_global_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_GLOBAL_INT) { buffer[0] = bench_global_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_ARRAY_SHORT) { buffer[0] = bench_array_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_ARRAY_INT) { buffer[0] = bench_array_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
 
     // Arithmetic
-    if (ins == INS_ADD_SHORT) { buffer[0] = bench_add_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_ADD_INT) { buffer[0] = bench_add_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_SUB_SHORT) { buffer[0] = bench_sub_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_SUB_INT) { buffer[0] = bench_sub_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_MUL_SHORT) { buffer[0] = bench_mul_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_MUL_INT) { buffer[0] = bench_mul_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_DIV_SHORT) { buffer[0] = bench_div_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_DIV_INT) { buffer[0] = bench_div_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_MOD_SHORT) { buffer[0] = bench_mod_short(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_MOD_INT) { buffer[0] = bench_mod_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_AND_INT) { buffer[0] = bench_and_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_OR_INT) { buffer[0] = bench_or_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_XOR_INT) { buffer[0] = bench_xor_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_SHL_INT) { buffer[0] = bench_shl_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_SHR_INT) { buffer[0] = bench_shr_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_USHR_INT) { buffer[0] = bench_ushr_int(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_ADD_SHORT) { buffer[0] = bench_add_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_ADD_INT) { buffer[0] = bench_add_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_SUB_SHORT) { buffer[0] = bench_sub_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_SUB_INT) { buffer[0] = bench_sub_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_MUL_SHORT) { buffer[0] = bench_mul_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_MUL_INT) { buffer[0] = bench_mul_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_DIV_SHORT) { buffer[0] = bench_div_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_DIV_INT) { buffer[0] = bench_div_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_MOD_SHORT) { buffer[0] = bench_mod_short(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_MOD_INT) { buffer[0] = bench_mod_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_AND_INT) { buffer[0] = bench_and_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_OR_INT) { buffer[0] = bench_or_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_XOR_INT) { buffer[0] = bench_xor_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_SHL_INT) { buffer[0] = bench_shl_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_SHR_INT) { buffer[0] = bench_shr_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_USHR_INT) { buffer[0] = bench_ushr_int(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
 
     // Control flow
-    if (ins == INS_LOOP_EMPTY) { buffer[0] = bench_loop_empty(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_LOOP_WORK) { buffer[0] = bench_loop_work(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_CALL_VOID) { buffer[0] = bench_call_void(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_CALL_PARAMS) { buffer[0] = bench_call_params(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_CALL_RETURN) { buffer[0] = bench_call_return(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_IF_ELSE) { buffer[0] = bench_if_else(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_LOOP_EMPTY) { buffer[0] = bench_loop_empty(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_LOOP_WORK) { buffer[0] = bench_loop_work(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_CALL_VOID) { buffer[0] = bench_call_void(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_CALL_PARAMS) { buffer[0] = bench_call_params(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_CALL_RETURN) { buffer[0] = bench_call_return(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_IF_ELSE) { buffer[0] = bench_if_else(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
 
     // I/O
     if (ins == INS_IO_SEND_200) {
-        jc_APDU_setOutgoing(apdu);
-        jc_APDU_setOutgoingLength(apdu, 200);
-        jc_APDU_sendBytesLong(apdu, io_buffer, 0, 200);
+        APDU_setOutgoing(apdu);
+        APDU_setOutgoingLength(apdu, 200);
+        APDU_sendBytesLong(apdu, io_buffer, 0, 200);
         return;
     }
     if (ins == INS_IO_RECV_200) {
         buffer[0] = (byte)apdu_len;
-        jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1);
+        APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1);
         return;
     }
 
     // DOOM-specific
-    if (ins == INS_FIXED_MUL) { buffer[0] = bench_fixed_mul(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_FIXED_DIV) { buffer[0] = bench_fixed_div(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_TRIG_SINE) { buffer[0] = bench_trig_sine(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_POINT_TO_ANGLE) { buffer[0] = bench_point_to_angle(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_FIXED_MUL) { buffer[0] = bench_fixed_mul(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_FIXED_DIV) { buffer[0] = bench_fixed_div(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_TRIG_SINE) { buffer[0] = bench_trig_sine(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_POINT_TO_ANGLE) { buffer[0] = bench_point_to_angle(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
 
     // Memory
-    if (ins == INS_MEMSET_LOOP) { buffer[0] = bench_memset_loop(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
-    if (ins == INS_MEMSET_NATIVE) { buffer[0] = bench_memset_native(); jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 1); jc_APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_MEMSET_LOOP) { buffer[0] = bench_memset_loop(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
+    if (ins == INS_MEMSET_NATIVE) { buffer[0] = bench_memset_native(); APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 1); APDU_sendBytes(apdu, 0, 1); return; }
 
-    jc_ISOException_throwIt(0x6D00);
+    ISOException_throwIt(0x6D00);
 }

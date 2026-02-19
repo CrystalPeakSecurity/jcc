@@ -22,7 +22,7 @@
 #define COL_UI_BORDER 14
 #define COL_BLOCKED 15
 
-// Must be first global for jc_APDU_sendBytesLong to work
+// Must be first global for APDU_sendBytesLong to work
 byte framebuffer[FB_SIZE];
 
 void clearFB(byte color) {

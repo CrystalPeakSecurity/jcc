@@ -31,13 +31,20 @@ impl core::ops::Deref for APDU {
 }
 
 extern "C" {
-    fn jc_APDU_getBuffer(apdu: APDU) -> *mut Byte;
-    fn jc_APDU_setOutgoing(apdu: APDU) -> Short;
-    fn jc_APDU_setOutgoingLength(apdu: APDU, len: Short);
-    fn jc_APDU_sendBytes(apdu: APDU, offset: Short, len: Short);
-    fn jc_APDU_sendBytesLong(apdu: APDU, buf: *const Byte, offset: Short, len: Short);
-    fn jc_ISOException_throwIt(sw: Short);
+    fn __java_javacard_framework_APDU_getBuffer(apdu: APDU) -> *mut Byte;
+    fn __java_javacard_framework_APDU_setOutgoing(apdu: APDU) -> Short;
+    fn __java_javacard_framework_APDU_setOutgoingLength(apdu: APDU, len: Short);
+    fn __java_javacard_framework_APDU_sendBytes(apdu: APDU, offset: Short, len: Short);
+    fn __java_javacard_framework_APDU_sendBytesLong(apdu: APDU, buf: *const Byte, offset: Short, len: Short);
+    fn __java_javacard_framework_ISOException_throwIt(sw: Short);
 }
+
+use __java_javacard_framework_APDU_getBuffer as APDU_getBuffer;
+use __java_javacard_framework_APDU_setOutgoing as APDU_setOutgoing;
+use __java_javacard_framework_APDU_setOutgoingLength as APDU_setOutgoingLength;
+use __java_javacard_framework_APDU_sendBytes as APDU_sendBytes;
+use __java_javacard_framework_APDU_sendBytesLong as APDU_sendBytesLong;
+use __java_javacard_framework_ISOException_throwIt as ISOException_throwIt;
 
 // =============================================================================
 // Constants
@@ -642,7 +649,7 @@ fn render_game() {
 #[no_mangle]
 pub extern "C" fn process(apdu: APDU, apdu_len: Short) {
     unsafe {
-        let buffer = jc_APDU_getBuffer(apdu);
+        let buffer = APDU_getBuffer(apdu);
         let ins = *buffer.offset(1);
 
         // Initialize on first call
@@ -653,8 +660,8 @@ pub extern "C" fn process(apdu: APDU, apdu_len: Short) {
 
         if ins == INS_RESET {
             reset_game();
-            jc_APDU_setOutgoing(apdu);
-            jc_APDU_setOutgoingLength(apdu, 0);
+            APDU_setOutgoing(apdu);
+            APDU_setOutgoingLength(apdu, 0);
             return;
         }
 
@@ -669,13 +676,13 @@ pub extern "C" fn process(apdu: APDU, apdu_len: Short) {
             clearFB();
             render_game();
 
-            jc_APDU_setOutgoing(apdu);
-            jc_APDU_setOutgoingLength(apdu, FB_SIZE);
-            jc_APDU_sendBytesLong(apdu, FRAMEBUFFER.as_ptr(), 0, FB_SIZE);
+            APDU_setOutgoing(apdu);
+            APDU_setOutgoingLength(apdu, FB_SIZE);
+            APDU_sendBytesLong(apdu, FRAMEBUFFER.as_ptr(), 0, FB_SIZE);
             return;
         }
 
-        jc_ISOException_throwIt(0x6D00); // SW_WRONG_INS
+        ISOException_throwIt(0x6D00); // SW_WRONG_INS
     }
 }
 

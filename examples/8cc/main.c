@@ -110,9 +110,9 @@ const short INIT_SHORTS[] = { 24, 25, 26 };
 void sendResult(APDU apdu, byte* buffer, short result) {
     buffer[0] = (byte)(result >> 8);
     buffer[1] = (byte)result;
-    jc_APDU_setOutgoing(apdu);
-    jc_APDU_setOutgoingLength(apdu, 2);
-    jc_APDU_sendBytes(apdu, 0, 2);
+    APDU_setOutgoing(apdu);
+    APDU_setOutgoingLength(apdu, 2);
+    APDU_sendBytes(apdu, 0, 2);
 }
 
 // =============================================================================
@@ -2524,7 +2524,7 @@ void test_hex(APDU apdu, byte* buffer, byte p1) {
 // =============================================================================
 
 void process(APDU apdu, short len) {
-    byte* buffer = jc_APDU_getBuffer(apdu);
+    byte* buffer = APDU_getBuffer(apdu);
     byte ins = buffer[APDU_INS];
     byte p1 = buffer[APDU_P1];
 
@@ -2571,5 +2571,5 @@ void process(APDU apdu, short len) {
     if (ins == 0x29) { test_lshr(apdu, buffer, p1); return; }
     if (ins == 0x2A) { test_hex(apdu, buffer, p1); return; }
 
-    jc_ISOException_throwIt(SW_WRONG_INS);
+    ISOException_throwIt(SW_WRONG_INS);
 }

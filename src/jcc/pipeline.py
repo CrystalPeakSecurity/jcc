@@ -58,7 +58,8 @@ def build_project(
     # 2. Run frontend command (if specified)
     if config.build_command:
         resolved_llvm_root = llvm_root or find_llvm_root()
-        run_frontend(config.build_command, project_dir, resolved_llvm_root)
+        run_frontend(config.build_command, project_dir, resolved_llvm_root,
+                     javacard_version=config.javacard_version)
 
     # 3. Find .ll file
     ll_path = find_ll_file(config, build_dir)
@@ -247,6 +248,7 @@ def run_frontend(
     command: str,
     cwd: Path,
     llvm_root: Path,
+    javacard_version: str = "3.0.4",
 ) -> None:
     """Run the frontend build command.
 
@@ -254,14 +256,17 @@ def run_frontend(
         command: Build command from jcc.toml.
         cwd: Working directory (project directory).
         llvm_root: LLVM root for PATH.
+        javacard_version: JavaCard SDK version for version-specific includes.
 
     Raises:
         BuildError: If command fails.
     """
     # Build environment
     env = os.environ.copy()
-    jcc_root = _data_dir()
-    env["JCC_ROOT"] = str(jcc_root)
+    from jcc.jcdk import config_dir
+    include_dir = config_dir() / "include"
+    env["JCC_INCLUDE"] = str(include_dir)
+    env["JAVACARD_VERSION"] = javacard_version
 
     # Add LLVM bin to PATH
     llvm_bin = llvm_root / "bin"
@@ -272,9 +277,8 @@ def run_frontend(
     build_dir = cwd / "build"
     build_dir.mkdir(exist_ok=True)
 
-    # Expand $JCC_ROOT in command
-    expanded_command = command.replace("$JCC_ROOT", str(jcc_root.resolve()))
-    expanded_command = os.path.expandvars(expanded_command)
+    # Expand environment variables in command
+    expanded_command = os.path.expandvars(command)
 
     # Run command
     result = subprocess.run(

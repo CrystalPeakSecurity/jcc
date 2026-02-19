@@ -30,7 +30,7 @@ void test_finesine(APDU apdu, byte *buffer, short len) {
         WRITE_SHORT(buffer, offset, value);
     }
 
-    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, offset); jc_APDU_sendBytes(apdu, 0, offset);
+    APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, offset); APDU_sendBytes(apdu, 0, offset);
 }
 
 void test_tantoangle(APDU apdu, byte *buffer, short len) {
@@ -51,7 +51,7 @@ void test_tantoangle(APDU apdu, byte *buffer, short len) {
         WRITE_SHORT(buffer, offset, value);
     }
 
-    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, offset); jc_APDU_sendBytes(apdu, 0, offset);
+    APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, offset); APDU_sendBytes(apdu, 0, offset);
 }
 
 void test_pointtoangle(APDU apdu, byte *buffer, short len) {
@@ -61,7 +61,7 @@ void test_pointtoangle(APDU apdu, byte *buffer, short len) {
     short off;
 
     if (len < 4) {
-        jc_ISOException_throwIt(0x6700);
+        ISOException_throwIt(0x6700);
         return;
     }
 
@@ -71,7 +71,7 @@ void test_pointtoangle(APDU apdu, byte *buffer, short len) {
 
     off = 0;
     WRITE_SHORT(buffer, off, angle);
-    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, off); jc_APDU_sendBytes(apdu, 0, off);
+    APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, off); APDU_sendBytes(apdu, 0, off);
 }
 
 void test_movement(APDU apdu, byte *buffer, short len) {
@@ -81,7 +81,7 @@ void test_movement(APDU apdu, byte *buffer, short len) {
     short move;
 
     if (len < 4) {
-        jc_ISOException_throwIt(0x6700);
+        ISOException_throwIt(0x6700);
         return;
     }
 
@@ -112,7 +112,7 @@ void test_movement(APDU apdu, byte *buffer, short len) {
     WRITE_SHORT(buffer, off, cos_val);
     WRITE_SHORT(buffer, off, sin_val);
     WRITE_SHORT(buffer, off, move);
-    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, off); jc_APDU_sendBytes(apdu, 0, off);
+    APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, off); APDU_sendBytes(apdu, 0, off);
 }
 
 void test_inputs(APDU apdu, byte *buffer, short len) {
@@ -122,7 +122,7 @@ void test_inputs(APDU apdu, byte *buffer, short len) {
     short off;
 
     if (len < 4) {
-        jc_ISOException_throwIt(0x6700);
+        ISOException_throwIt(0x6700);
         return;
     }
 
@@ -138,7 +138,7 @@ void test_inputs(APDU apdu, byte *buffer, short len) {
     WRITE_SHORT(buffer, off, fwd); // jcc:ignore-sign-extension
     WRITE_SHORT(buffer, off, str); // jcc:ignore-sign-extension
     WRITE_SHORT(buffer, off, trn); // jcc:ignore-sign-extension
-    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, off); jc_APDU_sendBytes(apdu, 0, off);
+    APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, off); APDU_sendBytes(apdu, 0, off);
 }
 
 void test_bsp(APDU apdu, byte *buffer, short len) {
@@ -157,7 +157,7 @@ void test_bsp(APDU apdu, byte *buffer, short len) {
     WRITE_SHORT(buffer, off, bsp_stat_subsectors); // jcc:ignore-sign-extension
     WRITE_SHORT(buffer, off, bsp_stat_segs);       // jcc:ignore-sign-extension
     WRITE_SHORT(buffer, off, bsp_stat_first_ss);   // jcc:ignore-sign-extension
-    jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, off); jc_APDU_sendBytes(apdu, 0, off);
+    APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, off); APDU_sendBytes(apdu, 0, off);
 }
 
 short handle_test(short ins, APDU apdu, byte *buffer, short len) {

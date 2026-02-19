@@ -329,9 +329,72 @@ def setup_gp() -> None:
 # --- Main ---
 
 
+def setup_headers() -> None:
+    """Generate versioned C headers from SDK export files."""
+    print(f"\n{B}API Headers{Z}")
+    jcdk = CONFIG_DIR / "jcdk"
+    versions_dir = jcdk / "versions"
+    if not versions_dir.exists():
+        warn("JCDK not installed, skipping header generation")
+        return
+
+    from jcc.api.headergen import generate_all_headers
+    from jcc.api.loader import load_api_registry
+    from jcc.jcdk import get_jcdk
+
+    include_dir = CONFIG_DIR / "include"
+    include_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copy jcc.h from package data
+    src_jcc_h = Path(__file__).parent / "data" / "include" / "jcc.h"
+    dest_jcc_h = include_dir / "jcc.h"
+    shutil.copy2(src_jcc_h, dest_jcc_h)
+
+    for export_dir in sorted(versions_dir.glob("api_export_files_*")):
+        version = export_dir.name.removeprefix("api_export_files_")
+        try:
+            jcdk_paths = get_jcdk(version)
+        except Exception:
+            warn(f"Could not resolve JCDK for {version}")
+            continue
+
+        # Load all available packages for this version
+        packages: list[str] = []
+        for exp_file in export_dir.rglob("*.exp"):
+            # Path: <package_path>/javacard/<last>.exp
+            # e.g., javacard/framework/javacard/framework.exp -> javacard.framework
+            #        javacardx/framework/util/intx/javacard/intx.exp -> javacardx.framework.util.intx
+            rel = exp_file.relative_to(export_dir)
+            parts = rel.parts
+            # 'javacard' sentinel dir is always second-to-last; package is everything before it
+            package_parts = parts[:-2]
+            packages.append(".".join(package_parts))
+
+        if not packages:
+            continue
+
+        try:
+            registry = load_api_registry(jcdk_paths, packages)
+        except Exception as e:
+            warn(f"Failed to load API for {version}: {e}")
+            continue
+
+        output_dir = include_dir / version
+        generated = generate_all_headers(registry, output_dir)
+        if generated:
+            ok(f"{version}")
+            for path in generated:
+                print(f"    {path.relative_to(output_dir)}")
+        else:
+            warn(f"{version}: no headers generated")
+
+    ok(f"Generated all C headers: {include_dir}")
+
+
 def main_toolchain() -> None:
     print(f"{B}jcc setup-toolchain{Z}")
     setup_jcdk()
+    setup_headers()
     setup_simulator()
     setup_rust()
     setup_gp()

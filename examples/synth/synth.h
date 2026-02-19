@@ -7,7 +7,7 @@
 #define AUDIO_BUFFER_SIZE 512
 
 static byte
-    audio_buffer[AUDIO_BUFFER_SIZE]; // must be first for jc_APDU_sendBytesLong
+    audio_buffer[AUDIO_BUFFER_SIZE]; // must be first for APDU_sendBytesLong
 
 // Forward declarations for cross-header references
 static byte fast_note;

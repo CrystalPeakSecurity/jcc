@@ -6,8 +6,7 @@ typedef __INT8_TYPE__  i8;
 typedef __INT16_TYPE__ i16;
 typedef __INT32_TYPE__ i32;
 
-// APDU object
-typedef void* APDU;
+#include "javacard/framework.h"
 
 // Entry point, must be implemented
 void process(APDU apdu, short len);
@@ -20,7 +19,7 @@ extern int __builtin_lshr_int(int value, int amount);
 
 // memset (only works for byte arrays)
 #define memset_bytes_at(dest, offset, value, length) \
-    jc_Util_arrayFillNonAtomic((dest), (offset), (length), (value))
+    Util_arrayFillNonAtomic((dest), (offset), (length), (value))
 #define memset_bytes(dest, value, length) \
     memset_bytes_at((dest), 0, (length), (value))
 
@@ -34,7 +33,7 @@ extern int __builtin_lshr_int(int value, int amount);
 #define APDU_LC   4
 #define APDU_DATA 5
 
-// Status words (ISO 7816-4)
+// ISO7816 status words
 #define SW_OK                       0x9000
 #define SW_WRONG_LENGTH             0x6700
 #define SW_SECURITY_NOT_SATISFIED   0x6982
@@ -48,21 +47,3 @@ extern int __builtin_lshr_int(int value, int amount);
 #define SW_WRONG_INS                0x6D00
 #define SW_CLA_NOT_SUPPORTED        0x6E00
 #define SW_UNKNOWN                  0x6F00
-
-/* ****************************************************************************************************************** */
-// JavaCard package functions
-
-// APDU methods
-extern byte* jc_APDU_getBuffer(APDU apdu);
-extern short jc_APDU_setIncomingAndReceive(APDU apdu);
-extern short jc_APDU_setOutgoing(APDU apdu);
-extern void  jc_APDU_setOutgoingLength(APDU apdu, short len);
-extern void  jc_APDU_sendBytes(APDU apdu, short offset, short len);
-extern void  jc_APDU_sendBytesLong(APDU apdu, byte* data, short offset, short len);
-
-// ISOException
-extern void jc_ISOException_throwIt(short sw);
-
-// Util
-extern short jc_Util_getShort(byte* arr, short offset);
-extern short jc_Util_arrayFillNonAtomic(byte* arr, short offset, short length, byte value);

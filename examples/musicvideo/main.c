@@ -8,7 +8,7 @@
 
 #include "jcc.h"
 
-// Combined response buffer - MUST be first for jc_APDU_sendBytesLong
+// Combined response buffer - MUST be first for APDU_sendBytesLong
 #define RESPONSE_SIZE 416
 byte response_buffer[RESPONSE_SIZE];
 
@@ -137,7 +137,7 @@ void decode_frame(short frame_idx) {
 }
 
 void process(APDU apdu, short apdu_len) {
-    byte *buffer = jc_APDU_getBuffer(apdu);
+    byte *buffer = APDU_getBuffer(apdu);
     byte ins = buffer[1];
     short i;
 
@@ -153,7 +153,7 @@ void process(APDU apdu, short apdu_len) {
         synth_init();
         player_init();
         player_start();
-        jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, 0); jc_APDU_sendBytes(apdu, 0, 0);
+        APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, 0); APDU_sendBytes(apdu, 0, 0);
         return;
     }
 
@@ -168,13 +168,13 @@ void process(APDU apdu, short apdu_len) {
             }
         }
 
-        jc_APDU_setOutgoing(apdu);
-        jc_APDU_setOutgoingLength(apdu, RESPONSE_SIZE);
-        jc_APDU_sendBytesLong(apdu, response_buffer, 0, RESPONSE_SIZE);
+        APDU_setOutgoing(apdu);
+        APDU_setOutgoingLength(apdu, RESPONSE_SIZE);
+        APDU_sendBytesLong(apdu, response_buffer, 0, RESPONSE_SIZE);
         return;
     }
 
-    jc_ISOException_throwIt(0x6D00);
+    ISOException_throwIt(0x6D00);
 }
 
 // JCSL simulator workaround

@@ -7,7 +7,7 @@
 #define COLOR_BLACK 0
 #define COLOR_WHITE 1
 
-// Framebuffer MUST be first global for jc_APDU_sendBytesLong to work
+// Framebuffer MUST be first global for APDU_sendBytesLong to work
 byte framebuffer[FB_SIZE];
 
 void clearFB(void) { memset_bytes(framebuffer, 0, FB_SIZE); }

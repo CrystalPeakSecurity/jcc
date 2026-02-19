@@ -22,7 +22,7 @@
 #define COLOR_TEXT_LIGHT 14
 #define COLOR_GRID 15
 
-// Must be first global for jc_APDU_sendBytesLong offset calculation
+// Must be first global for APDU_sendBytesLong offset calculation
 byte framebuffer[FB_SIZE];
 
 void clearFB(byte color) {

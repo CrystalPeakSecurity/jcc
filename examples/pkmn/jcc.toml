@@ -11,7 +11,7 @@ javacard_version = "3.0.4"
 extended_apdu = true
 
 [build]
-command = "clang -S -emit-llvm -g -target wasm32-unknown-unknown -O1 -fno-jump-tables -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"
+command = "clang -S -emit-llvm -g -target wasm32-unknown-unknown -O1 -fno-jump-tables -nostdinc -I $JCC_INCLUDE -I $JCC_INCLUDE/$JAVACARD_VERSION main.c -o build/main.ll"
 
 [driver]
 game_name = "PKMN"

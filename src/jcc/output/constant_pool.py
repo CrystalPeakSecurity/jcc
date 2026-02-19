@@ -212,27 +212,27 @@ class _ConstantPoolBuilder:
         e.g., `store i32 %val, ptr %byte_array_offset`.
         """
         # Util.getShort/setShort for SHORT from BYTE array
-        for name in ("jc_Util_getShort", "jc_Util_setShort"):
+        for name in ("__java_javacard_framework_Util_getShort", "__java_javacard_framework_Util_setShort"):
             method = api.lookup_intrinsic(name)
             if method:
                 self._add_api_method_entry(name, method, api)
 
         # JCint.getInt/setInt for INT from BYTE array (only with intx support)
         if self.config.has_intx:
-            for name in ("jc_JCint_getInt", "jc_JCint_setInt"):
+            for name in ("__java_javacardx_framework_util_intx_JCint_getInt", "__java_javacardx_framework_util_intx_JCint_setInt"):
                 method = api.lookup_intrinsic(name)
                 if method:
                     self._add_api_method_entry(name, method, api)
 
         # Util.arrayFillNonAtomic for memset on byte arrays
-        method = api.lookup_intrinsic("jc_Util_arrayFillNonAtomic")
+        method = api.lookup_intrinsic("__java_javacard_framework_Util_arrayFillNonAtomic")
         if method:
-            self._add_api_method_entry("jc_Util_arrayFillNonAtomic", method, api)
+            self._add_api_method_entry("__java_javacard_framework_Util_arrayFillNonAtomic", method, api)
 
         # Util.arrayCopyNonAtomic for memcpy on byte arrays
-        method = api.lookup_intrinsic("jc_Util_arrayCopyNonAtomic")
+        method = api.lookup_intrinsic("__java_javacard_framework_Util_arrayCopyNonAtomic")
         if method:
-            self._add_api_method_entry("jc_Util_arrayCopyNonAtomic", method, api)
+            self._add_api_method_entry("__java_javacard_framework_Util_arrayCopyNonAtomic", method, api)
 
     def add_memory_arrays(self, allocation: AllocationResult, api: APIRegistry) -> None:
         """Add memory array fields and makeTransient*Array methods.
@@ -355,7 +355,7 @@ class _ConstantPoolBuilder:
                 for instr in block.all_instructions:
                     if isinstance(instr, CallInst):
                         name = instr.func_name
-                        if name.startswith("jc_") and name not in self.api_method_idx:
+                        if name.startswith("__java_") and name not in self.api_method_idx:
                             method = api.lookup_intrinsic(name)
                             if method:
                                 self._add_api_method_entry(name, method, api)
@@ -365,7 +365,7 @@ class _ConstantPoolBuilder:
         if missing:
             raise ConstantPoolError(
                 f"Unknown API intrinsics: {', '.join(sorted(set(missing)))}. "
-                "Check that names follow jc_<Class>_<method> convention."
+                "Check that names follow __java_<package>_<Class>_<method> convention."
             )
 
     def _add_api_method_entry(

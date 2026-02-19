@@ -106,7 +106,7 @@ def is_lowerable_intrinsic(func_name: str) -> bool:
 
 
 # Set of intrinsics we can lower to regular IR instructions.
-# Note: memset_bytes is NOT here - it's #defined to jc_Util_arrayFillNonAtomic
+# Note: memset_bytes is NOT here - it's #defined to Util_arrayFillNonAtomic
 # in jcc.h, so we never see it in IR.
 LOWERABLE_INTRINSICS = frozenset(
     [

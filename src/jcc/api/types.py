@@ -1,6 +1,6 @@
 """Type definitions for JavaCard API registry.
 
-The registry maps C intrinsic names (like `jc_APDU_getBuffer`) to their
+The registry maps C intrinsic names (like `__java_javacard_framework_APDU_getBuffer`) to their
 corresponding JavaCard API methods, providing tokens and descriptors
 needed for bytecode emission.
 """
@@ -62,7 +62,7 @@ class APIRegistry:
 
     Provides lookup by:
     - Class name + method name (direct lookup)
-    - C intrinsic name (e.g., "jc_APDU_getBuffer")
+    - C intrinsic name (e.g., "__java_javacard_framework_APDU_getBuffer")
     """
 
     classes: Mapping[str, ClassInfo]  # class_name -> ClassInfo
@@ -94,23 +94,32 @@ class APIRegistry:
         return overloads[0]
 
     def lookup_intrinsic(self, c_name: str) -> MethodInfo | None:
-        """Look up by C intrinsic name (e.g., 'jc_APDU_getBuffer').
+        """Look up by C intrinsic name.
 
-        Naming convention: jc_<ClassName>_<methodName>
+        Naming: __java_<package_path>_<ClassName>_<methodName>
+        e.g., '__java_javacard_framework_APDU_getBuffer'
 
-        For instance methods, the C function takes `this` as first parameter.
-        For static methods, there is no `this` parameter.
+        The class name is identified as the first uppercase segment
+        after stripping the __java_ prefix.
         """
-        if not c_name.startswith("jc_"):
+        if not c_name.startswith("__java_"):
             return None
 
-        rest = c_name[3:]  # Remove "jc_"
-        if "_" not in rest:
+        rest = c_name[7:]  # Remove "__java_"
+        parts = rest.split("_")
+
+        # Find the class: first segment starting with uppercase
+        class_idx = None
+        for i, part in enumerate(parts):
+            if part and part[0].isupper():
+                class_idx = i
+                break
+
+        if class_idx is None or class_idx + 1 >= len(parts):
             return None
 
-        # Split on last underscore: ClassName_methodName
-        # This handles cases like ISOException_throwIt
-        class_part, method_name = rest.rsplit("_", 1)
+        class_part = parts[class_idx]
+        method_name = "_".join(parts[class_idx + 1:])
 
         # O(1) lookup by simple name
         cls = self._by_simple_name.get(class_part)

@@ -13,4 +13,4 @@ extended_apdu = true
 max_stack_slots = 210
 
 [build]
-command = "clang -S -emit-llvm -g -target msp430-unknown-unknown -O1 -fno-vectorize -fno-slp-vectorize -nostdinc -I $JCC_ROOT/include main.c -o build/main.ll"
+command = "clang -S -emit-llvm -g -target msp430-unknown-unknown -O1 -fno-vectorize -fno-slp-vectorize -nostdinc -I $JCC_INCLUDE -I $JCC_INCLUDE/$JAVACARD_VERSION main.c -o build/main.ll"

@@ -50,7 +50,7 @@ void P_InitPlayer(void) {
 byte player_initialized = 0;
 
 void process(APDU apdu, short apdu_len) {
-    byte *buffer = jc_APDU_getBuffer(apdu);
+    byte *buffer = APDU_getBuffer(apdu);
     short ins = buffer[1] & 0xFF;
 
     // BSP test
@@ -70,7 +70,7 @@ void process(APDU apdu, short apdu_len) {
         WRITE_SHORT(buffer, bsp_off, bsp_stat_subsectors); // jcc:ignore-sign-extension
         WRITE_SHORT(buffer, bsp_off, bsp_stat_segs);       // jcc:ignore-sign-extension
         WRITE_SHORT(buffer, bsp_off, bsp_stat_first_ss);   // jcc:ignore-sign-extension
-        jc_APDU_setOutgoing(apdu); jc_APDU_setOutgoingLength(apdu, bsp_off); jc_APDU_sendBytes(apdu, 0, bsp_off);
+        APDU_setOutgoing(apdu); APDU_setOutgoingLength(apdu, bsp_off); APDU_sendBytes(apdu, 0, bsp_off);
         return;
     }
 
@@ -91,9 +91,9 @@ void process(APDU apdu, short apdu_len) {
 
         R_RenderBSPNode(ROOT_NODE);
 
-        jc_APDU_setOutgoing(apdu);
-        jc_APDU_setOutgoingLength(apdu, FB_SIZE);
-        jc_APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
+        APDU_setOutgoing(apdu);
+        APDU_setOutgoingLength(apdu, FB_SIZE);
+        APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
         return;
     }
 
@@ -130,13 +130,13 @@ void process(APDU apdu, short apdu_len) {
         R_RenderBSPNode(ROOT_NODE);
 
         // Send framebuffer
-        jc_APDU_setOutgoing(apdu);
-        jc_APDU_setOutgoingLength(apdu, FB_SIZE);
-        jc_APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
+        APDU_setOutgoing(apdu);
+        APDU_setOutgoingLength(apdu, FB_SIZE);
+        APDU_sendBytesLong(apdu, framebuffer, 0, FB_SIZE);
         return;
     }
 
-    jc_ISOException_throwIt(0x6D00);
+    ISOException_throwIt(0x6D00);
 }
 
 void _jcsl_method_cap_fix(void) {}

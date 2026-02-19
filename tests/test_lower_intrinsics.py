@@ -141,8 +141,8 @@ class TestIsLowerableIntrinsic:
 
     def test_jc_intrinsics_not_lowerable(self) -> None:
         """JavaCard API intrinsics are not lowerable here."""
-        assert not is_lowerable_intrinsic("jc_APDU_getBuffer")
-        assert not is_lowerable_intrinsic("jc_ISOException_throwIt")
+        assert not is_lowerable_intrinsic("__java_javacard_framework_APDU_getBuffer")
+        assert not is_lowerable_intrinsic("__java_javacard_framework_ISOException_throwIt")
 
     def test_memset_not_lowered_here(self) -> None:
         """memset_* should be #defined in C header, not lowered here."""
@@ -399,7 +399,7 @@ class TestLowerBlock:
         """Non-lowerable calls are preserved."""
         block = make_block(
             "entry",
-            [make_call("%result", "jc_APDU_getBuffer", ["%apdu"])],
+            [make_call("%result", "__java_javacard_framework_APDU_getBuffer", ["%apdu"])],
         )
         fresh = FreshNameGenerator()
         result = lower_block(block, fresh)
@@ -413,7 +413,7 @@ class TestLowerBlock:
             "entry",
             [
                 make_call("%a", "__builtin_lshr_int", ["%x", 1], JCType.INT),
-                make_call("%b", "jc_APDU_getBuffer", ["%apdu"]),
+                make_call("%b", "__java_javacard_framework_APDU_getBuffer", ["%apdu"]),
                 make_call("%c", "llvm.smax.i16", ["%y", "%z"]),
             ],
         )
@@ -421,7 +421,7 @@ class TestLowerBlock:
         result = lower_block(block, fresh)
 
         # __builtin_lshr_int -> 1 BinaryInst
-        # jc_APDU_getBuffer -> 1 CallInst (unchanged)
+        # __java_javacard_framework_APDU_getBuffer -> 1 CallInst (unchanged)
         # llvm.smax.i16 -> 1 ICmpInst + 1 SelectInst
         assert len(result.instructions) == 4
         assert isinstance(result.instructions[0], BinaryInst)
