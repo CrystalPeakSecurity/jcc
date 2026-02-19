@@ -47,6 +47,7 @@ from jcc.codegen.expr import (
     MemcpyLoopStmt,
     MemsetLoopStmt,
     NegExpr,
+    NewObjectExpr,
     ReturnStmt,
     ScalarFieldLoadExpr,
     ScalarFieldStoreStmt,
@@ -237,6 +238,13 @@ def emit_expr(expr: TypedExpr, ctx: EmitContext) -> None:
 
         case UserCallExpr(ty=ty, target=_, args=args, cp_index=cp):
             emit_user_call(args, cp, ty, ctx)
+
+        case NewObjectExpr(class_cp=class_cp, init_cp=init_cp, args=args, nargs=nargs):
+            ctx.emit(ops.new_(class_cp))
+            ctx.emit(ops.dup())
+            for arg in args:
+                emit_expr(arg, ctx)
+            ctx.emit(ops.invokespecial(init_cp, nargs, 0))
 
         case CallStmt(ty=_, call=call):
             emit_call_stmt(call, ctx)
@@ -754,7 +762,7 @@ def emit_user_call(
     ctx.emit(ops.invokestatic(cp, nargs, nret))
 
 
-def emit_call_stmt(call: APICallExpr | UserCallExpr, ctx: EmitContext) -> None:
+def emit_call_stmt(call: APICallExpr | UserCallExpr | NewObjectExpr, ctx: EmitContext) -> None:
     """Emit call statement (discards result if non-void)."""
     if isinstance(call, APICallExpr):
         emit_api_call(call.method, call.args, call.cp_index, ctx)
@@ -765,6 +773,9 @@ def emit_call_stmt(call: APICallExpr | UserCallExpr, ctx: EmitContext) -> None:
                 ctx.emit(ops.pop())
             elif slots == 2:
                 ctx.emit(ops.pop2())
+    elif isinstance(call, NewObjectExpr):
+        emit_expr(call, ctx)
+        ctx.emit(ops.pop())
     else:
         emit_user_call(call.args, call.cp_index, call.ty, ctx)
         # Pop result if non-void
@@ -1186,6 +1197,7 @@ def compile_function(
         user_method_cp=cp.user_method_cp,
         offset_phi_info=offset_phi_info,
         scalar_field_lookup=scalar_field_lookup,
+        constructor_cp=cp.constructor_cp,
     )
 
     # Create emit context and temp allocator

@@ -58,6 +58,7 @@ def _make_mock_cp(
         _user_method_idx={"process": 30},
         _user_method_desc={"process": "(Ljavacard/framework/APDU;S)V"},
         _scalar_field_idx={},
+        _constructor_idx={},
         _api=None,
         _user_functions=frozenset(["process"]),
     )

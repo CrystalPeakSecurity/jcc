@@ -428,6 +428,7 @@ def _make_test_cp() -> "ConstantPool":
         _user_method_idx={},
         _user_method_desc={},
         _scalar_field_idx={},
+        _constructor_idx={},
         _api=None,
         _user_functions=frozenset(),
     )

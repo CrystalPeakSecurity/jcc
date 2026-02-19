@@ -5,6 +5,7 @@ corresponding JavaCard API methods, providing tokens and descriptors
 needed for bytecode emission.
 """
 
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
@@ -125,10 +126,24 @@ class APIRegistry:
         cls = self._by_simple_name.get(class_part)
         if cls is None:
             return None
+
+        # Parse overload suffix: "method_1" → ("method", 1)
+        overload_idx = 0
+        m = re.match(r'^(.+?)_(\d+)$', method_name)
+        if m:
+            base, idx_str = m.groups()
+            if base in cls.methods and method_name not in cls.methods:
+                method_name = base
+                overload_idx = int(idx_str)
+
+        # Map "new" → "<init>" for constructors
+        if method_name == "new":
+            method_name = "<init>"
+
         overloads = cls.methods.get(method_name)
-        if not overloads:
+        if not overloads or overload_idx >= len(overloads):
             return None
-        return overloads[0]
+        return overloads[overload_idx]
 
     def get_class(self, class_name: str) -> ClassInfo | None:
         """Look up a class by full name."""

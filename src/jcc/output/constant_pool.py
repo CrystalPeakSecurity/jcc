@@ -84,6 +84,7 @@ class _ConstantPoolBuilder:
         self.user_method_idx: dict[str, int] = {}
         self.user_method_desc: dict[str, str] = {}
         self.scalar_field_idx: dict[str, int] = {}  # field_name → CP index
+        self.constructor_idx: dict[str, tuple[int, int]] = {}  # intrinsic → (class_cp, init_cp)
 
         # Stored references
         self.api: APIRegistry | None = None
@@ -355,10 +356,13 @@ class _ConstantPoolBuilder:
                 for instr in block.all_instructions:
                     if isinstance(instr, CallInst):
                         name = instr.func_name
-                        if name.startswith("__java_") and name not in self.api_method_idx:
+                        if name.startswith("__java_") and name not in self.api_method_idx and name not in self.constructor_idx:
                             method = api.lookup_intrinsic(name)
                             if method:
-                                self._add_api_method_entry(name, method, api)
+                                if method.method_name == "<init>":
+                                    self._add_constructor_entry(name, method, api)
+                                else:
+                                    self._add_api_method_entry(name, method, api)
                             else:
                                 missing.append(name)
 
@@ -387,6 +391,32 @@ class _ConstantPoolBuilder:
                 f"{method.method_name}{method.descriptor}",
             )
         )
+
+    def _add_constructor_entry(
+        self, intrinsic_name: str, method: MethodInfo, api: APIRegistry
+    ) -> None:
+        """Add constructor CP entries (classRef + init method)."""
+        pkg_idx = self.track_package(method.class_name)
+
+        cls = api.get_class(method.class_name)
+        if cls is None:
+            return
+
+        # ClassRef for 'new' instruction
+        class_cp = self.add_entry(CPEntry(
+            CPEntryKind.CLASS_REF,
+            f"{pkg_idx}.{cls.token}",
+            method.class_name,
+        ))
+
+        # <init> method ref for invokespecial (staticMethodRef matches lifecycle pattern)
+        init_cp = self.add_entry(CPEntry(
+            CPEntryKind.STATIC_METHOD_REF,
+            f"{pkg_idx}.{cls.token}.{method.method_token}{method.descriptor}",
+            f"<init>{method.descriptor}",
+        ))
+
+        self.constructor_idx[intrinsic_name] = (class_cp, init_cp)
 
     def add_user_methods(
         self, module: Module, param_typedefs: dict[str, tuple[str | None, ...]]
@@ -461,6 +491,7 @@ class ConstantPool:
     _user_method_idx: Mapping[str, int]
     _user_method_desc: Mapping[str, str]
     _scalar_field_idx: Mapping[str, int]  # field_name → CP index
+    _constructor_idx: Mapping[str, tuple[int, int]]  # intrinsic → (class_cp, init_cp)
 
     # Stored references for compilation
     _api: APIRegistry | None
@@ -571,6 +602,11 @@ class ConstantPool:
         """Scalar static field CP indices (field_name → CP index)."""
         return self._scalar_field_idx
 
+    @property
+    def constructor_cp(self) -> Mapping[str, tuple[int, int]]:
+        """Constructor CP indices (intrinsic → (class_cp, init_cp))."""
+        return self._constructor_idx
+
     # --- Class method for building ---
 
     @classmethod
@@ -638,6 +674,7 @@ class ConstantPool:
             _user_method_idx=MappingProxyType(builder.user_method_idx),
             _user_method_desc=MappingProxyType(builder.user_method_desc),
             _scalar_field_idx=MappingProxyType(builder.scalar_field_idx),
+            _constructor_idx=MappingProxyType(builder.constructor_idx),
             _api=builder.api,
             _user_functions=builder.user_functions,
         )

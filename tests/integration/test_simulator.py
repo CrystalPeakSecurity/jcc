@@ -31,3 +31,9 @@ def test_2048_loads(simulator: None, examples_dir: Path) -> None:
     """Test loading 2048 example onto simulator."""
     cap_path = build_example(examples_dir / "2048")
     load_applet(cap_path, examples_dir / "2048" / "jcc.toml")
+
+
+def test_constructor_loads(simulator: None, examples_dir: Path) -> None:
+    """Test loading constructor example onto simulator."""
+    cap_path = build_example(examples_dir / "constructor")
+    load_applet(cap_path, examples_dir / "constructor" / "jcc.toml")

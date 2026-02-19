@@ -30,3 +30,9 @@ def test_2048(examples_dir: Path) -> None:
     """Test verifying 2048 example."""
     cap_path = build_example(examples_dir / "2048")
     verify_cap(cap_path)
+
+
+def test_constructor(examples_dir: Path) -> None:
+    """Test verifying constructor example."""
+    cap_path = build_example(examples_dir / "constructor")
+    verify_cap(cap_path)

@@ -12,7 +12,7 @@ Escaping values become separate roots that store to their slots.
 """
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -48,6 +48,7 @@ from jcc.codegen.expr import (
     MemcpyLoopStmt,
     MemsetLoopStmt,
     NegExpr,
+    NewObjectExpr,
     ReturnStmt,
     SelectExpr,
     StoreSlotStmt,
@@ -113,6 +114,9 @@ class BuildContext:
     # Scalar field promotion: (MemArray, offset) → (cp_index, field_type)
     scalar_field_lookup: Mapping[tuple[MemArray, int], tuple[int, JCType]] | None = None
 
+    # Constructor CP indices: intrinsic name → (class_cp, init_cp)
+    constructor_cp: Mapping[str, tuple[int, int]] = field(default_factory=dict)
+
     # Offset phi info (for reconstructing pointers from offset phi results)
     offset_phi_info: "OffsetPhiInfo | None" = None
 
@@ -141,6 +145,7 @@ def create_build_context(
     user_method_cp: Mapping[str, int],
     offset_phi_info: "OffsetPhiInfo | None" = None,
     scalar_field_lookup: Mapping[tuple[MemArray, int], tuple[int, JCType]] | None = None,
+    constructor_cp: Mapping[str, tuple[int, int]] | None = None,
 ) -> BuildContext:
     """Create a BuildContext for a function."""
     return BuildContext(
@@ -155,6 +160,7 @@ def create_build_context(
         user_method_cp=user_method_cp,
         scalar_field_lookup=scalar_field_lookup,
         offset_phi_info=offset_phi_info,
+        constructor_cp=constructor_cp or {},
     )
 
 
@@ -1226,9 +1232,22 @@ def _build_array_copy(
     return CallStmt(ty=JCType.VOID, call=call_expr)
 
 
-def build_call_expr(instr: CallInst, ctx: BuildContext) -> APICallExpr | UserCallExpr:
+def build_call_expr(instr: CallInst, ctx: BuildContext) -> APICallExpr | UserCallExpr | NewObjectExpr:
     """Build the call expression (without wrapping in store/statement)."""
     func_name = instr.func_name
+
+    # Check if this is a constructor call
+    if func_name in ctx.constructor_cp:
+        class_cp, init_cp = ctx.constructor_cp[func_name]
+        args = _build_api_call_args(instr.args, ctx)
+        nargs = sum(arg.ty.slots for arg in args) + 1  # +1 for objectref
+        return NewObjectExpr(
+            ty=JCType.REF,
+            class_cp=class_cp,
+            init_cp=init_cp,
+            args=args,
+            nargs=nargs,
+        )
 
     # Check if this is an API call
     if ctx.api is not None:

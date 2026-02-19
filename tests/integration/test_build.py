@@ -26,3 +26,8 @@ def test_rusty(examples_dir: Path) -> None:
 def test_2048(examples_dir: Path) -> None:
     """Test building 2048 example."""
     build_example(examples_dir / "2048")
+
+
+def test_constructor(examples_dir: Path) -> None:
+    """Test building constructor example."""
+    build_example(examples_dir / "constructor")

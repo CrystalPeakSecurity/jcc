@@ -361,15 +361,34 @@ class UserCallExpr(TypedExpr):
 
 
 @dataclass(frozen=True)
+class NewObjectExpr(TypedExpr):
+    """Create new object via constructor.
+
+    Emits:
+        new <class_cp>
+        dup
+        <emit args>
+        invokespecial <init_cp>
+
+    Result: objectref on stack (ty is always REF).
+    """
+
+    class_cp: int                  # CP index for classRef (new instruction)
+    init_cp: int                   # CP index for <init> method (invokespecial)
+    args: tuple["TypedExpr", ...]  # Constructor args (not including 'this')
+    nargs: int                     # Total arg slots for invokespecial stack effect
+
+
+@dataclass(frozen=True)
 class CallStmt(TypedExpr):
     """Call that discards its result (for side effects only).
 
-    Wraps an APICallExpr or UserCallExpr when the result is unused.
+    Wraps an APICallExpr, UserCallExpr, or NewObjectExpr when the result is unused.
 
     Emits: call + pop if result is non-void
     """
 
-    call: "APICallExpr | UserCallExpr"
+    call: "APICallExpr | UserCallExpr | NewObjectExpr"
 
 
 # === Control Flow (Terminators) ===

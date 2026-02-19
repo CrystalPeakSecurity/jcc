@@ -136,8 +136,6 @@ def generate_header(registry: APIRegistry, package_name: str) -> str:
         simple_name = cls.name.rsplit("/", 1)[-1]
         all_ref_types.add(simple_name)
         for method_name, overloads in cls.methods.items():
-            if method_name == "<init>":
-                continue
             for method in overloads:
                 all_ref_types |= _collect_ref_types(method.descriptor)
 
@@ -158,24 +156,28 @@ def generate_header(registry: APIRegistry, package_name: str) -> str:
         simple_name = cls.name.rsplit("/", 1)[-1]
         lines.append(f"// {simple_name}")
 
-        # Collect all methods, skip constructors
-        all_methods: list[tuple[str, MethodInfo, str]] = []
+        all_methods: list[tuple[str, MethodInfo, str, str]] = []
         for method_name, overloads in sorted(cls.methods.items()):
-            if method_name == "<init>":
-                continue
+            # Map <init> to "new" for C-callable constructor names
+            c_method_name = "new" if method_name == "<init>" else method_name
             for idx, method in enumerate(overloads):
                 if len(overloads) > 1 and idx > 0:
                     suffix = f"_{idx}"
                 else:
                     suffix = ""
-                alias = f"{simple_name}_{method_name}{suffix}"
-                all_methods.append((alias, method, suffix))
+                alias = f"{simple_name}_{c_method_name}{suffix}"
+                all_methods.append((alias, method, suffix, c_method_name))
 
-        for alias, method, suffix in all_methods:
+        for alias, method, suffix, c_method_name in all_methods:
+            is_constructor = method.method_name == "<init>"
             params, ret = parse_descriptor(method.descriptor)
 
-            # Instance methods get self as first param (typed to class)
-            if not method.is_static:
+            if is_constructor:
+                # Constructors: no self, return type is the class
+                ret = simple_name
+                params = [f"{t} {_param_name(i)}" for i, t in enumerate(params)]
+            elif not method.is_static:
+                # Instance methods get self as first param (typed to class)
                 params = [f"{simple_name} self"] + [
                     f"{t} {_param_name(i)}" for i, t in enumerate(params)
                 ]
@@ -183,7 +185,7 @@ def generate_header(registry: APIRegistry, package_name: str) -> str:
                 params = [f"{t} {_param_name(i)}" for i, t in enumerate(params)]
 
             param_str = ", ".join(params) if params else "void"
-            linkage = f"__java_{pkg_underscored}_{method.class_name.rsplit('/', 1)[-1]}_{method.method_name}{suffix}"
+            linkage = f"__java_{pkg_underscored}_{method.class_name.rsplit('/', 1)[-1]}_{c_method_name}{suffix}"
 
             # Pad return type for alignment
             ret_padded = ret.ljust(6) if len(ret) < 6 else ret + " "
@@ -192,8 +194,8 @@ def generate_header(registry: APIRegistry, package_name: str) -> str:
         lines.append("")
 
         # #define aliases
-        for alias, method, suffix in all_methods:
-            linkage = f"__java_{pkg_underscored}_{method.class_name.rsplit('/', 1)[-1]}_{method.method_name}{suffix}"
+        for alias, method, suffix, c_method_name in all_methods:
+            linkage = f"__java_{pkg_underscored}_{method.class_name.rsplit('/', 1)[-1]}_{c_method_name}{suffix}"
             lines.append(f"#define {alias} {linkage}")
 
         lines.append("")
