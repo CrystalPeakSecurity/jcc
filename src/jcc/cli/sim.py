@@ -57,13 +57,11 @@ def _start_simulator(sim_dir: Path, port: int) -> None:
     result = _docker(
         "run", "-d",
         "--name", CONTAINER_NAME,
-        "-v", f"{sim_dir}:/jcdk-sim:ro",
+        "-v", f"{sim_dir}/runtime/bin:/app:ro",
         "-p", f"{port}:9025",
         "jcdk-sim",
         "sh", "-c",
-        "LD_LIBRARY_PATH=/jcdk-sim/runtime/bin "
-        "OPENSSL_MODULES=/jcdk-sim/runtime/bin "
-        "/jcdk-sim/runtime/bin/jcsl -p=9025",
+        "LD_LIBRARY_PATH=/app OPENSSL_MODULES=/app /app/jcsl -p=9025",
     )
     if result.returncode != 0:
         print(f"Failed to start simulator:\n{result.stderr}", file=sys.stderr)

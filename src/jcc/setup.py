@@ -16,9 +16,7 @@ ORACLE_URL = "https://www.oracle.com/java/technologies/javacard-downloads.html"
 GP_API = "https://api.github.com/repos/martinpaljak/GlobalPlatformPro/releases/latest"
 
 SIMULATOR_DOCKERFILE = (
-    "FROM --platform=linux/386 i386/debian:bookworm\n"
-    "RUN apt-get update && apt-get install -y --no-install-recommends socat "
-    "&& rm -rf /var/lib/apt/lists/*\n"
+    "FROM --platform=linux/386 i386/busybox:glibc\n"
 )
 
 G = "\033[32m"
